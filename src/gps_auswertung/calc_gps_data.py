@@ -4,7 +4,7 @@ class Calc_GPS_Data():
     """calculates different values for a given np.array from a gps-csv-file
     
         possble functions are:"""
-    def __init__(self, gps_array: np.array):
+    def __init__(self, gps_array: np.ndarray):
         
         self.gps_array = gps_array
 
@@ -17,12 +17,13 @@ class Calc_GPS_Data():
         """
 
         #Erd Raduis [M]
-        R = 63710000.0
+        R = 6371000.0
 
         #Lat/Long und höhe in einzelne Arrays speichern und Längen/Breiten -grad in Radiant umrechnen 
-        lat = np.radians(self.gps_array[:,0])
-        lon = np.radians(self.gps_array[:,1])
-        alt = self.gps_array[:,2]
+        #astype(float) is needed because array is type obejct and not float
+        lat = np.deg2rad(self.gps_array[:,0].astype(float))
+        lon = np.deg2rad(self.gps_array[:,1].astype(float))
+        alt = self.gps_array[:,2].astype(float)
 
         #Calculates the delta i+1 and i with np.diff
         dlat = np.diff(lat)
@@ -43,5 +44,5 @@ class Calc_GPS_Data():
         #calculte total distance by adding every part 
         total_distance = np.sum(distance_3d)
 
-        return total_distance
+        return float(total_distance)
  
