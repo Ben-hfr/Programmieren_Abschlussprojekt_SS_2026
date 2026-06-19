@@ -13,9 +13,12 @@ def import_csv_to_array(dateiname: str) -> np.array:
     dateipfad = csv_dir / dateiname 
 
     gps_pandas = pd.read_csv(dateipfad, delimiter=";")
+
+    #convert time in datetime for calculation
+    gps_pandas["time"] = pd.to_datetime(gps_pandas["time"])
    
     #convert pandas keyframe to numpy-array
-    gps_array = gps_pandas.to_numpy()
+    gps_array = gps_pandas[["lat","lon","ele","time","temperature"]].to_numpy()
     
     return gps_array
 

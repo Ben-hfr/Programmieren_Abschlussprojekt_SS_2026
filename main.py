@@ -15,9 +15,12 @@ from src.gps_auswertung.calc_gps_data import Calc_GPS_Data
 #merge Data path
 project_root = Path(__file__).resolve().parent
 
-
+#vorläufige Tests
 array = import_csv_to_array("final_project_input_data.csv")
 
 gps_evaluator = Calc_GPS_Data(array)
 distance = gps_evaluator.get_total_distance()
 print(distance)
+
+velocity = gps_evaluator.get_speed()
+print(velocity)
