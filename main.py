@@ -28,8 +28,13 @@ print(f"Acc:{gps_evaluator.get_acceleration()}")
 
 print(f"timedeltas_sec:{gps_evaluator.dtime_sec}")
 
-print(f"alt:{gps_evaluator.get_altitude}")
+print(f"alt:{gps_evaluator.get_altitude()}")
 
+print(f"the total ascent was: {gps_evaluator.get_ascent_and_descent()[0]}m and {gps_evaluator.get_ascent_and_descent()[1]}m descent")
+
+print(f"the total elapsed time was: {gps_evaluator.get_total_time()}")
+
+print(f"mean speed: {gps_evaluator.get_mean_speed()}km/h")
 #gradient = gps_evaluator.get_gradient_deg()
 #np.set_printoptions(threshold=np.inf)
 #print(gradient)

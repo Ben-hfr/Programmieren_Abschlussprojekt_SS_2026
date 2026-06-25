@@ -11,6 +11,7 @@ class Calc_GPS_Data():
         self.speed_ms = 0
         self.acc = 0
         self.altitude = 0
+        self.total_time = 0
 
         #get time
         time = self.gps_array[:,3]
@@ -177,7 +178,6 @@ class Calc_GPS_Data():
         self.get_distance()
         alt = self.gps_array[:,2].astype(float)
 
-
         #get height delta for each timestamp
         d_alt = np.diff(alt)
 
@@ -193,4 +193,74 @@ class Calc_GPS_Data():
         percent_round = np.round(percent, 1)
 
         return percent_round
+
+    def get_ascent_and_descent(self) -> tuple[float, float]:
+        """
+        takes:
+            given Numpy array 
+        does:
+            Calculates the total ascent and descent   
+        returns: 
+            tuple (ascent, descent)
+        """
+        #get altitude
+        alt = self.gps_array[:,2].astype(float)
+
+        #calculate altitude delta 
+        d_alt = np.diff(alt)
+
+        #calculate the sum of ascent and descent 
+        #absolute value for descent to get positive value
+        ascent = d_alt[d_alt > 0].sum()
+        descent = np.abs(d_alt[d_alt < 0].sum())
+
+        return (np.round(ascent), np.round(descent))
+
+    def get_total_time(self) -> tuple[int, int, int]:
+        """
+        takes:
+            given numpy Array
+        does:
+            Calculates the total time needed for the given gps track
+        returns:
+            total elapsed time as tuple (stunden, minuten, sekunden)
+        """
+
+        #get first and last timestamp from gps track
+        start = self.gps_array[0,3]
+        end = self.gps_array[-1,3]
+
+        #calculate elapsed time 
+        total = end - start
+        
+        #in Sekunde
+        self.total_time = total.total_seconds() 
+
+        #convert seconds to hours, minutes, seconds 
+        stunden = int(self.total_time // 3600)
+        minuten = int((self.total_time % 3600) // 60)
+        sekunden = int(np.round(self.total_time % 60))
+        
+        return (stunden, minuten, sekunden)
+
+
+    def get_mean_speed(self) -> float:
+        """
+        takes:
+            given Numpy Array
+        does:
+            calculates the mean speed over the whole track
+        returns:
+            mean speed in km/h 
+        """
+
+        #get time and distance 
+        self.get_total_time()
+        dist = self.get_total_distance()
+
+        #convert to h and km
+        dist_km = dist / 1000
+        time_h = self.total_time / 3600
+        
+        return np.round((dist_km / time_h), 2)
         
