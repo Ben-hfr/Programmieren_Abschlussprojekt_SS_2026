@@ -44,7 +44,7 @@ class Calc_GPS_Data():
         takes: given Numpy array
         does: this method calculates the traveled distance with the use of the Haversine formular.
         It takes into account the given altitude.
-        gives: calculated total distance in meters. 
+        returns: calculated total distance in meters. 
         """
 
         #get distance array with method to use later on 
@@ -59,7 +59,7 @@ class Calc_GPS_Data():
         """
         takes: given Numpy array
         does: this method calculates the velocity for each time delta in the given GPS Data
-        gives: calculates the velocity in kmh 
+        returns: calculates the velocity in kmh 
         """
         
         #get distance array with method to use later on 
@@ -83,3 +83,76 @@ class Calc_GPS_Data():
         speed_kmh = speed_ms * 3.6
 
         return speed_kmh
+    
+    def get_altitude(self) -> np.ndarray:
+        """ 
+        takes: given Numpy array 
+        does: this method extracts the altitude from the given array
+        returns: the altitude for each timestamp as Numpy array 
+        """
+        
+        #get altitude from gps data 
+        alt = self.gps_array[:,2].astype(float)
+        
+        #round altitude to meters
+        alt_round = np.round(alt, 0)
+
+        return alt_round 
+
+
+    def get_gradient_deg(self) -> np.ndarray:
+        """
+        takes: given Numpy array 
+        does: Calculates the gradient for each timestamp with the distance and altitude delta 
+        returns: gradient in degree for each timestamp as Numpy array
+        """
+        
+        #get altitude and distance
+        #call distance method for later use
+        self._distance()
+        alt = self.gps_array[:,2].astype(float)
+
+
+        #get height delta for each timestamp
+        d_alt = np.diff(alt)
+
+        #calculate gradient for each timestamp
+        #sin(phi) = gegenkat / hypo
+        frac = d_alt / self.dist
+        phi = np.rad2deg(np.arcsin(frac))   
+
+        #round to .1 degree
+        phi_round = np.round(phi, 1)
+
+        return phi_round
+    
+    def get_gradient_percent(self) -> np.ndarray:
+        """
+        takes: given Numpy array 
+        does: Calculates the gradient for each timestamp with the distance and altitude delta 
+        returns: gradient in percent for each timestamp as Numpy array
+        """
+
+        #get altitude and distance
+        #call distance method for later use
+        self._distance()
+        alt = self.gps_array[:,2].astype(float)
+
+
+        #get height delta for each timestamp
+        d_alt = np.diff(alt)
+
+        #calculate gradient for each timestamp
+        #sin(phi) = gegenkat / hypo
+        frac = d_alt / self.dist
+        phi = np.arcsin(frac) 
+
+        #transform angle to percent 
+        percent = np.tan(phi) * 100 
+
+        #round to .1 percent 
+        percent_round = np.round(percent, 1)
+
+        return percent_round
+        
+

@@ -24,3 +24,14 @@ print(distance)
 
 velocity = gps_evaluator.get_speed()
 print(velocity)
+
+alt = gps_evaluator.get_altitude()
+print(alt)
+
+#gradient = gps_evaluator.get_gradient_deg()
+#np.set_printoptions(threshold=np.inf)
+#print(gradient)
+
+#gradient_percent = gps_evaluator.get_gradient_percent()
+#np.set_printoptions(threshold=np.inf)
+#print(gradient_percent)
