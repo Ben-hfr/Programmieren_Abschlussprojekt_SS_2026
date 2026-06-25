@@ -41,10 +41,13 @@ class Calc_GPS_Data():
     
     def get_total_distance(self) -> float:
         """
-        takes: given Numpy array
-        does: this method calculates the traveled distance with the use of the Haversine formular.
-        It takes into account the given altitude.
-        returns: calculated total distance in meters. 
+        takes:
+            given Numpy array
+        does:
+            this method calculates the traveled distance with the use of the Haversine formular.
+            It takes into account the given altitude.
+        returns:
+            calculated total distance in meters. 
         """
 
         #get distance array with method to use later on 
@@ -57,9 +60,12 @@ class Calc_GPS_Data():
     
     def get_speed(self) -> np.ndarray:
         """
-        takes: given Numpy array
-        does: this method calculates the velocity for each time delta in the given GPS Data
-        returns: calculates the velocity in kmh 
+        takes:
+            given Numpy array
+        does:
+            this method calculates the velocity for each time delta in the given GPS Data
+        returns:
+            calculates the velocity in kmh 
         """
         
         #get distance array with method to use later on 
@@ -86,9 +92,12 @@ class Calc_GPS_Data():
     
     def get_altitude(self) -> np.ndarray:
         """ 
-        takes: given Numpy array 
-        does: this method extracts the altitude from the given array
-        returns: the altitude for each timestamp as Numpy array 
+        takes:
+            given Numpy array 
+        does:
+            this method extracts the altitude from the given array
+        returns:
+            the altitude for each timestamp as Numpy array 
         """
         
         #get altitude from gps data 
@@ -102,9 +111,12 @@ class Calc_GPS_Data():
 
     def get_gradient_deg(self) -> np.ndarray:
         """
-        takes: given Numpy array 
-        does: Calculates the gradient for each timestamp with the distance and altitude delta 
-        returns: gradient in degree for each timestamp as Numpy array
+        takes:
+            given Numpy array 
+        does:
+            Calculates the gradient for each timestamp with the distance and altitude delta 
+        returns:
+            gradient in degree for each timestamp as Numpy array
         """
         
         #get altitude and distance
@@ -128,9 +140,12 @@ class Calc_GPS_Data():
     
     def get_gradient_percent(self) -> np.ndarray:
         """
-        takes: given Numpy array 
-        does: Calculates the gradient for each timestamp with the distance and altitude delta 
-        returns: gradient in percent for each timestamp as Numpy array
+        takes:
+            given Numpy array 
+        does:
+            Calculates the gradient for each timestamp with the distance and altitude delta 
+        returns: 
+            gradient in percent for each timestamp as Numpy array
         """
 
         #get altitude and distance
