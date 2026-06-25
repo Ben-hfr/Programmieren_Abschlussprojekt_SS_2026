@@ -35,6 +35,8 @@ print(f"the total ascent was: {gps_evaluator.get_ascent_and_descent()[0]}m and {
 print(f"the total elapsed time was: {gps_evaluator.get_total_time()}")
 
 print(f"mean speed: {gps_evaluator.get_mean_speed()}km/h")
+
+print(f"lowest point: {gps_evaluator.get_min_max_elevation()[0]}m. Highest point: {gps_evaluator.get_min_max_elevation()[1]}m")
 #gradient = gps_evaluator.get_gradient_deg()
 #np.set_printoptions(threshold=np.inf)
 #print(gradient)

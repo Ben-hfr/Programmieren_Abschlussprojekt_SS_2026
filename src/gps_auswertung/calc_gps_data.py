@@ -263,4 +263,23 @@ class Calc_GPS_Data():
         time_h = self.total_time / 3600
         
         return np.round((dist_km / time_h), 2)
+
+    def get_min_max_elevation(self) -> tuple [int, int]:
+        """
+        takes: 
+            given Numpy array with gps data
+        does: 
+            gets the highest and lowest point of elevation
+        returns:
+            min and max elevation in meters (min, max)
+        """
+        #get elevation 
+        elevation = self.gps_array[:,2].astype(float)
+
+        #get min and max value 
+        min = int(np.round(elevation.min()))
+        max = int(np.round(elevation.max()))
+
+        return (min, max)
+
         
