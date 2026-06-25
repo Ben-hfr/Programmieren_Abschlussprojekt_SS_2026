@@ -22,11 +22,13 @@ gps_evaluator = Calc_GPS_Data(array)
 distance = gps_evaluator.get_total_distance()
 print(distance)
 
-velocity = gps_evaluator.get_speed()
-print(velocity)
+print(f"Speed:{gps_evaluator.get_speed()}")
 
-alt = gps_evaluator.get_altitude()
-print(alt)
+print(f"Acc:{gps_evaluator.get_acceleration()}")
+
+print(f"timedeltas_sec:{gps_evaluator.dtime_sec}")
+
+print(f"alt:{gps_evaluator.get_altitude}")
 
 #gradient = gps_evaluator.get_gradient_deg()
 #np.set_printoptions(threshold=np.inf)

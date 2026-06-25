@@ -8,8 +8,25 @@ class Calc_GPS_Data():
         
         self.gps_array = gps_array
         self.dist = 0
+        self.speed_ms = 0
+        self.acc = 0
+        self.altitude = 0
 
-    def _distance(self) -> float:
+        #get time
+        time = self.gps_array[:,3]
+        #calculate time delta 
+        dtime = np.diff(time)
+        #convert time deltas to seconds
+        self.dtime_sec = dtime.astype('timedelta64[s]').astype(float)
+
+
+    def get_distance(self) -> float:
+        """
+        takes:
+            given Numpy array of GPS-Data
+        does:
+            this method calculates the distance for each time delta in the given GPS Data and saves it as self.dist
+        """
 
         #define Erd Raduis [m]
         R = 6371000.0
@@ -34,30 +51,8 @@ class Calc_GPS_Data():
         distance_2d = 2 * R * np.arcsin(help_d)
 
         #3D Distance with altitude 
-        distance_3d = np.sqrt((distance_2d**2) + (dalt**2))
+        self.dist = np.sqrt((distance_2d**2) + (dalt**2))
 
-        self.dist = distance_3d
-
-    
-    def get_total_distance(self) -> float:
-        """
-        takes:
-            given Numpy array
-        does:
-            this method calculates the traveled distance with the use of the Haversine formular.
-            It takes into account the given altitude.
-        returns:
-            calculated total distance in meters. 
-        """
-
-        #get distance array with method to use later on 
-        self._distance()
-
-        #calculte total distance by adding every part 
-        total_distance = np.sum(self.dist)
-
-        return float(total_distance)
-    
     def get_speed(self) -> np.ndarray:
         """
         takes:
@@ -69,27 +64,38 @@ class Calc_GPS_Data():
         """
         
         #get distance array with method to use later on 
-        self._distance()
+        self.get_distance()
 
         #get time and distance 
         distance = self.dist
-        time = self.gps_array[:,3]
-
-        #calculate time delta 
-        dtime = np.diff(time)
-
-        #convert time deltas to seconds
-        dt_seconds = dtime.astype('timedelta64[s]').astype(float)
 
         #calculate speed
-        dt_seconds = np.where(dt_seconds == 0, 1e-5, dt_seconds)
-        speed_ms = distance / dt_seconds
+        self.dtime_sec = np.where(self.dtime_sec == 0, 1e-5, self.dtime_sec)
+        self.speed_ms = distance / self.dtime_sec
 
         #convert to km/h
-        speed_kmh = speed_ms * 3.6
+        self.speed_ms
 
-        return speed_kmh
+        return self.speed_ms * 3.6
     
+    def get_acceleration(self) -> np.ndarray:
+        """
+        takes:
+            speed numpy array
+        does:
+            this method calculates the acceleration for each time delta in the given GPS Data
+        returns:
+            calculates the acceleration in m/s^2
+        """
+
+        #get speed
+        self.get_speed()
+
+        #calculate acceleration
+        self.acc = self.speed_ms / self.dtime_sec
+
+        return self.acc
+
     def get_altitude(self) -> np.ndarray:
         """ 
         takes:
@@ -104,10 +110,28 @@ class Calc_GPS_Data():
         alt = self.gps_array[:,2].astype(float)
         
         #round altitude to meters
-        alt_round = np.round(alt, 0)
+        self.altitude = np.round(alt, 0)
 
-        return alt_round 
+        return self.altitude
 
+    def get_total_distance(self) -> float:
+        """
+        takes:
+            given Numpy array
+        does:
+            this method calculates the traveled distance with the use of the Haversine formular.
+            It takes into account the given altitude.
+        returns:
+            calculated total distance in meters. 
+        """
+
+        #get distance array with method to use later on 
+        self.get_distance()
+
+        #calculte total distance by adding every part 
+        totalget_distance = np.sum(self.dist)
+
+        return float(totalget_distance)
 
     def get_gradient_deg(self) -> np.ndarray:
         """
@@ -121,7 +145,7 @@ class Calc_GPS_Data():
         
         #get altitude and distance
         #call distance method for later use
-        self._distance()
+        self.get_distance()
         alt = self.gps_array[:,2].astype(float)
 
 
@@ -150,7 +174,7 @@ class Calc_GPS_Data():
 
         #get altitude and distance
         #call distance method for later use
-        self._distance()
+        self.get_distance()
         alt = self.gps_array[:,2].astype(float)
 
 
@@ -170,4 +194,3 @@ class Calc_GPS_Data():
 
         return percent_round
         
-
