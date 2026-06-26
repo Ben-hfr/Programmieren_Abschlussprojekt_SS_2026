@@ -91,9 +91,19 @@ class Calc_GPS_Data():
 
         #get speed
         self.get_speed()
+        dspeed = np.diff(self.speed_ms)
+
+        #zugehöriges Zeitintervall von dspeed: Mittelwert der beiden angrenzenden dt's,
+        #da dspeed genau zwischen Intervall i und i+1 liegt
+        dt = (self.dtime_sec[:-1] + self.dtime_sec[1:]) / 2
+        dt = np.where(dt == 0, 1e-5, dt)
 
         #calculate acceleration
-        self.acc = self.speed_ms / self.dtime_sec
+        acc = dspeed / dt
+
+        #für das allererste Zeitintervall gibt es keinen "Vorgänger" -> mit 0 auffüllen
+        #(Annahme: keine Beschleunigung am ersten Punkt), damit das Array gleich lang
+        self.acc = np.insert(acc, 0, 0.0)
 
         return self.acc
 
