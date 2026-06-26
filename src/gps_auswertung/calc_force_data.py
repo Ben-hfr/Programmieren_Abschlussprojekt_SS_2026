@@ -37,19 +37,41 @@ class Calc_Force_Data():
     def get_drag_force(self) -> np.ndarray:
         """
         takes:
-            speed from Calc_GPS_Data
+            speed from Calc_GPS_Data, rho, cw, area
         does:
             calculates the air drag force F_D = 0.5 * rho * cw * A * v^2
         returns:
             drag force in N for each time delta
         """
 
+        #get speed as m/s
         speed_ms = self.gps_calc.get_speed() / 3.6
 
+        #calculate drag force
         self.F_drag = (self.rho * self.cw * self.area * speed_ms**2) / 2
 
         return self.F_drag
+    
+    def get_gravity_force(self) -> np.ndarray:
+           """
+        takes:
+            gradient from Calc_GPS_Data, g, mass
+        does:
+            calculates the force component along the slope (Hangabtriebskraft)
+            F_g = m * g * sin(phi)
+        returns:
+            gravity force in N for each time delta
+        """
+           
+           #Get gradient as rad
+           phi_rad = np.deg2rad(self.gps_calc.get_gradient_deg())
 
+           #Calculate gravity-force
+           self.F_gravity = self.mass * self.g * np.sin(phi_rad)
+
+           return self.F_gravity
+
+    
 
 
         
