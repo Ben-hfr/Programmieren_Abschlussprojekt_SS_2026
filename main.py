@@ -12,6 +12,7 @@ from pathlib import Path
 
 from data.csv_to_array import import_csv_to_array
 from src.gps_auswertung.calc_gps_data import Calc_GPS_Data
+from src.gps_auswertung.calc_force_data import Calc_Force_Data
 #merge Data path
 project_root = Path(__file__).resolve().parent
 
@@ -37,10 +38,10 @@ print(f"the total elapsed time was: {gps_evaluator.get_total_time()}")
 print(f"mean speed: {gps_evaluator.get_mean_speed()}km/h")
 
 print(f"lowest point: {gps_evaluator.get_min_max_elevation()[0]}m. Highest point: {gps_evaluator.get_min_max_elevation()[1]}m")
-#gradient = gps_evaluator.get_gradient_deg()
-#np.set_printoptions(threshold=np.inf)
-#print(gradient)
 
-#gradient_percent = gps_evaluator.get_gradient_percent()
-#np.set_printoptions(threshold=np.inf)
-#print(gradient_percent)
+
+force_calc = Calc_Force_Data(gps_evaluator, mass=95.0, cw=0.9, area=0.5)
+ 
+print(f"req. Force: {force_calc.get_required_force()}")
+print(f"req. power: {force_calc.get_power()}")
+

@@ -1,5 +1,5 @@
 import numpy as np
-from src.gps_auswertung.calc_gps_data import Calc_GPS_Data
+from calc_gps_data import Calc_GPS_Data
 
 class Calc_Force_Data():
     """calculates the force and the power needed to drive the e-bike, based on kinematic data (speed, acceleration, gradient)
@@ -70,7 +70,76 @@ class Calc_Force_Data():
            self.F_gravity = self.mass * self.g * np.sin(phi_rad)
 
            return self.F_gravity
+    
+    def get_rolling_resistance(self) -> np.ndarray:
+        """
+        takes:
+            gradient from Calc_GPS_Data, c_roll, mass, g
+        does:
+            calculates the rolling resistance F_r = c_roll * m * g * cos(phi)
+            (optional, default c_roll = 0)
+        returns:
+            rolling resistance in N for each time delta
+        """
+        phi_deg = self.gps_calc.get_gradient_deg()
+        phi_rad = np.deg2rad(phi_deg)
+ 
+        self.F_roll = self.c_roll * self.mass * self.g * np.cos(phi_rad)
+ 
+        return self.F_roll
+    
+    def get_acceleration_force(self) -> np.ndarray:
+        """
+        takes:
+            acceleration from Calc_GPS_Data, mass, acceleration
+        does:
+            calculates the force needed to accelerate: F_a = m * a
+        returns:
+            acceleration force in N for each time delta
+        """
+        acc = self.gps_calc.get_acceleration()
+ 
+        self.F_acc = self.mass * acc
+ 
+        return self.F_acc
+    
+    def get_required_force(self) -> np.ndarray:
+        """
+        takes:
+            all single forces calculated in this class
+        does:
+            sums up all forces along the direction of travel to get the
+            force the e-bike (motor + pedalling) needs to provide,
+            based on Newton's second law:
+            F_required = F_acc + F_drag + F_gravity + F_roll
+        returns:
+            required driving force in N for each time delta
+        """
+        F_acc = self.get_acceleration_force()
+        F_drag = self.get_drag_force()
+        F_gravity = self.get_gravity_force()
+        F_roll = self.get_rolling_resistance()
+ 
+        self.F_required = F_acc + F_drag + F_gravity + F_roll
+ 
+        return self.F_required
 
+    
+    def get_power(self) -> np.ndarray:
+        """
+        takes:
+            required force and speed
+        does:
+            calculates the power needed: P = F * v
+        returns:
+            power in Watt for each time delta
+        """
+        F = self.get_required_force()
+        speed_ms = self.gps_calc.get_speed() / 3.6
+ 
+        self.power = F * speed_ms
+ 
+        return self.power
     
 
 
