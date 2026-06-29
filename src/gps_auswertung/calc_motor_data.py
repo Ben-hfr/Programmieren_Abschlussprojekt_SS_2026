@@ -13,15 +13,16 @@ class Calc_Motor_Data():
  
         possible functions are:"""
     
-    def __init__(self, force_calc , r_wheel: float, k_m: float): #k_m = motorconstant
+    def __init__(self, force_calc , d_wheel: float, k_m: float): #k_m = motorconstant
         """
         takes:
             force_calc: an already created instance of Calc_Force_Data
-            r_wheel: Wheelradius [m]
+            d_wheel: Wheeldiameter [zoll]
             k_m: Motorconstant [Nm/A]
         """
         self.force_calc = force_calc
-        self.r_wheel = r_wheel
+        #umrechnung von Zoll in m (1 Zoll = 2.54cm) und durchmesser in Radius
+        self.r_wheel = (d_wheel * 0.0254) / 2 
         self.k_m = k_m
  
         self.torque = 0

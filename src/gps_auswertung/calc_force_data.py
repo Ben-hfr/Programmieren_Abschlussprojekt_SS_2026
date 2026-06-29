@@ -6,23 +6,22 @@ class Calc_Force_Data():
 
     possible functions are:"""
 
-    def __init__(self, gps_calc, mass: float, cw: float, area: float,
-                 rho: float = 1.225, c_roll: float = 0.0, g: float = 9.81):
+    def __init__(self, gps_calc, mass_rider: float, mass_bike: float , cw_times_area: float,
+                 c_roll: float = 0.0, g: float = 9.81):
         """
         takes:
             gps_calc: an already created instance of Calc_GPS_Data
-            mass: total mass of e-bike + rider [kg]
-            cw: drag coefficient of bike + rider [-]
-            area: frontal area [m^2]
-            rho: air density [kg/m^3] (default: 1.225 -> 15°C, sea level)
+            mass_rider: total mass of rider [kg]
+            mass_bike: total mass of bike [kg]
+            cw_times_ares: drag coefficient of bike + rider multiplied with frontal area [m^2]
+            rho: !replaced by calc from gps_calc!
             c_roll: rolling resistance coefficient [-] (default: 0, optional)
             g: gravitational acceleration [m/s^2] (default = 9,81)
         """
         self.gps_calc = gps_calc 
-        self.mass = mass
-        self.cw = cw
-        self.area = area
-        self.rho = rho
+        self.mass = mass_rider + mass_bike
+        self.cw_area = cw_times_area
+        self.rho = gps_calc.get_air_density()
         self.c_roll = c_roll
         self.g = g
 
@@ -47,7 +46,7 @@ class Calc_Force_Data():
         speed_ms = self.gps_calc.get_speed() / 3.6
 
         #calculate drag force
-        self.F_drag = (self.rho * self.cw * self.area * speed_ms**2) / 2
+        self.F_drag = (self.rho * self.cw_area * speed_ms**2) / 2
 
         return self.F_drag
     

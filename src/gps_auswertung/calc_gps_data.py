@@ -12,6 +12,7 @@ class Calc_GPS_Data():
         self.acc = 0
         self.altitude = 0
         self.total_time = 0
+        self.rho = 0
 
         #get time
         time = self.gps_array[:,3]
@@ -291,5 +292,32 @@ class Calc_GPS_Data():
         max = int(np.round(elevation.max()))
 
         return (min, max)
+    
+    def get_air_density(self) -> np.ndarray: 
+        """
+        takes:
+            given Numpy array
+        does:
+            this method calculates the air densitiy for each timestamp in the given GPS Data
+        returns:
+            Numpy Array with air density [kg/m^3]
+        """
+        p_0 = 101325 #Luftdruck auf Meereshöhe (ca.) [Pa]
+        g = 9.81 #[m/s^2] 
+        M = 0.02896 #Molare Masse Luft [kg/mol]
+        R = 8.314 #Gaskonstante [J/(mol * K)]
+        T = self.gps_array[:,4].astype(float) 
+        T_abs = T + 273.15 #Absolte Temperatur (C + 273,15) [K]
+        h = self.gps_array[:,2].astype(float)
+
+        x = -((g * M * h)/(R * T_abs))
+        p = p_0 * np.exp(x) #Luftdruck in Paskal [kg^2 / m * s]
+
+        self.rho = (p * M) / (R * T_abs) #Luftdichte [kg/m^3]
+        
+        #Mittelwerte zwischen Messerwerten, damit es auch 2283 werte sind 
+        rho_mittelwerte = (self.rho[:-1] + self.rho[1:]) / 2
+        
+        return rho_mittelwerte
 
         

@@ -40,14 +40,16 @@ print(f"mean speed: {gps_evaluator.get_mean_speed()}km/h")
 
 print(f"lowest point: {gps_evaluator.get_min_max_elevation()[0]}m. Highest point: {gps_evaluator.get_min_max_elevation()[1]}m")
 
+print(f"Air density: {gps_evaluator.get_air_density()}")
+
 #beispiel Kräfte
-force_calc = Calc_Force_Data(gps_evaluator, mass=95.0, cw=0.9, area=0.5)
+force_calc = Calc_Force_Data(gps_evaluator, mass_rider=70.0, mass_bike=15.0, cw_times_area=0.5625)
  
 print(f"req. Force: {force_calc.get_required_force()}N")
 print(f"req. power: {force_calc.get_power()}W")
 
 #beispielmotor
-motor_calc = Calc_Motor_Data(force_calc, r_wheel=0.3429, k_m=1.5) #r_wheel = 27 inch. Umrechnung muss noch in der Klasse eingebaut werden
+motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch. Umrechnung muss noch in der Klasse eingebaut werden
  
 print(f"torque: {motor_calc.get_torque()}Nm")
 print(f"motor-current: {motor_calc.get_motor_current()}A")
