@@ -1,5 +1,4 @@
 import numpy as np
-from calc_gps_data import Calc_GPS_Data
 
 class Calc_Force_Data():
     """calculates the force and the power needed to drive the e-bike, based on kinematic data (speed, acceleration, gradient)
