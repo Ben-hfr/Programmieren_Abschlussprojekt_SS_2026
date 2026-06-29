@@ -1,12 +1,21 @@
 import numpy as np
+from scipy.signal import savgol_filter 
 
 class Calc_GPS_Data():
     """calculates different values for a given np.array from a gps-csv-file
     
         possble functions are:"""
-    def __init__(self, gps_array: np.ndarray):
-        
+    def __init__(self, gps_array: np.ndarray, window_size: int, polyorder: int):
+        """
+        takes:
+            window_size: size of window for Savitzky-Golay Filter
+            polyorder: The order of polynomial for Savitzky-Golay Filter. This must be less than window_size!
+        """
+        self.window_size = window_size
+        self.polyorder = polyorder
         self.gps_array = gps_array
+
+        
         self.dist = 0
         self.speed_ms = 0
         self.acc = 0
@@ -27,7 +36,8 @@ class Calc_GPS_Data():
         takes:
             given Numpy array of GPS-Data
         does:
-            this method calculates the distance for each time delta in the given GPS Data and saves it as self.dist
+            this method calculates the distance for each time delta in the given GPS Data and saves it as self.dist.
+            The Data is filtered usinging the Savitzky-Golay Filter and the values given in the Constructor 
         """
 
         #define Erd Raduis [m]
@@ -53,7 +63,13 @@ class Calc_GPS_Data():
         distance_2d = 2 * R * np.arcsin(help_d)
 
         #3D Distance with altitude 
-        self.dist = np.sqrt((distance_2d**2) + (dalt**2))
+        dist_raw = np.sqrt((distance_2d**2) + (dalt**2))
+
+        #filtered with Savitzky-Golay Filter
+        self.dist = savgol_filter(dist_raw, self.window_size, self.polyorder)
+
+        return self.dist
+
 
     def get_speed(self) -> np.ndarray:
         """
@@ -73,10 +89,10 @@ class Calc_GPS_Data():
 
         #calculate speed
         self.dtime_sec = np.where(self.dtime_sec == 0, 1e-5, self.dtime_sec)
-        self.speed_ms = distance / self.dtime_sec
+        speed_raw = distance / self.dtime_sec
 
         #convert to km/h
-        self.speed_ms
+        self.speed_ms = savgol_filter(speed_raw, self.window_size, self.polyorder)
 
         return self.speed_ms * 3.6
     
@@ -122,9 +138,9 @@ class Calc_GPS_Data():
         alt = self.gps_array[:,2].astype(float)
         
         #round altitude to meters
-        self.altitude = np.round(alt, 0)
-
-        return self.altitude
+        self.altitude = savgol_filter(alt, self.window_size, self.polyorder)
+        
+        return np.round(self.altitude, 0)
 
     def get_total_distance(self) -> float:
         """
@@ -158,11 +174,10 @@ class Calc_GPS_Data():
         #get altitude and distance
         #call distance method for later use
         self.get_distance()
-        alt = self.gps_array[:,2].astype(float)
-
+        self.get_altitude()
 
         #get height delta for each timestamp
-        d_alt = np.diff(alt)
+        d_alt = np.diff(self.altitude)
 
         #calculate gradient for each timestamp
         #sin(phi) = gegenkat / hypo
@@ -187,10 +202,10 @@ class Calc_GPS_Data():
         #get altitude and distance
         #call distance method for later use
         self.get_distance()
-        alt = self.gps_array[:,2].astype(float)
+        self.get_altitude()
 
         #get height delta for each timestamp
-        d_alt = np.diff(alt)
+        d_alt = np.diff(self.altitude)
 
         #calculate gradient for each timestamp
         #sin(phi) = gegenkat / hypo
@@ -214,11 +229,11 @@ class Calc_GPS_Data():
         returns: 
             tuple (ascent, descent)
         """
-        #get altitude
-        alt = self.gps_array[:,2].astype(float)
+        #get altitude and distance
+        self.get_altitude()
 
-        #calculate altitude delta 
-        d_alt = np.diff(alt)
+        #get height delta for each timestamp
+        d_alt = np.diff(self.altitude)
 
         #calculate the sum of ascent and descent 
         #absolute value for descent to get positive value

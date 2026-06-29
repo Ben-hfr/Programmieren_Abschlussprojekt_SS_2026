@@ -4,7 +4,7 @@ import math
 import os
 import sys
 import unittest
-import matplotlib as mpl
+import matplotlib.pyplot as plt
 from abc import ABC
 from pathlib import Path
 
@@ -20,7 +20,9 @@ project_root = Path(__file__).resolve().parent
 #vorläufige Tests
 array = import_csv_to_array("final_project_input_data.csv")
 
-gps_evaluator = Calc_GPS_Data(array)
+
+#filter 5,4 
+gps_evaluator = Calc_GPS_Data(array, 21, 3)
 distance = gps_evaluator.get_total_distance()
 print(distance)
 
@@ -53,3 +55,12 @@ motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch
  
 print(f"torque: {motor_calc.get_torque()}Nm")
 print(f"motor-current: {motor_calc.get_motor_current()}A")
+
+fig, ax = plt.subplots()
+
+ax.plot(
+    gps_evaluator.get_altitude()
+)
+
+
+plt.show()
