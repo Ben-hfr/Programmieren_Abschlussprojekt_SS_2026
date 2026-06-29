@@ -6,7 +6,7 @@ class Calc_Force_Data():
 
     possible functions are:"""
 
-    def __init__(self, gps_calc: Calc_GPS_Data, mass: float, cw: float, area: float,
+    def __init__(self, gps_calc, mass: float, cw: float, area: float,
                  rho: float = 1.225, c_roll: float = 0.0, g: float = 9.81):
         """
         takes:
