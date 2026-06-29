@@ -17,6 +17,7 @@ class Calc_GPS_Data():
 
         
         self.dist = 0
+        self.dist_2d = None
         self.speed_ms = 0
         self.acc = 0
         self.altitude = 0
@@ -61,12 +62,10 @@ class Calc_GPS_Data():
         #Haversine formular
         help_d = np.sqrt(np.sin(dlat/2)**2 + np.cos(lat_start) * np.cos(lat_end) * np.sin(dlon / 2)**2)
         distance_2d = 2 * R * np.arcsin(help_d)
+        self.dist_2d = distance_2d
 
         #3D Distance with altitude 
-        dist_raw = np.sqrt((distance_2d**2) + (dalt**2))
-
-        #filtered with Savitzky-Golay Filter
-        self.dist = savgol_filter(dist_raw, self.window_size, self.polyorder)
+        self.dist = np.sqrt((distance_2d**2) + (dalt**2))
 
         return self.dist
 
@@ -82,17 +81,17 @@ class Calc_GPS_Data():
         """
         
         #get distance array with method to use later on 
-        self.get_distance()
-
-        #get time and distance 
-        distance = self.dist
+        raw_dist = self.get_distance()
 
         #calculate speed
         self.dtime_sec = np.where(self.dtime_sec == 0, 1e-5, self.dtime_sec)
-        speed_raw = distance / self.dtime_sec
+        speed_raw = raw_dist / self.dtime_sec
 
-        #convert to km/h
-        self.speed_ms = savgol_filter(speed_raw, self.window_size, self.polyorder)
+        #filter 
+        self.speed_ms = savgol_filter(speed_raw, self.window_size, self.polyorder, mode="nearest")
+
+        #speed cannot be negative
+        self.speed_ms = np.where(self.speed_ms < 0, 0.0, self.speed_ms)
 
         return self.speed_ms * 3.6
     
@@ -138,7 +137,7 @@ class Calc_GPS_Data():
         alt = self.gps_array[:,2].astype(float)
         
         #round altitude to meters
-        self.altitude = savgol_filter(alt, self.window_size, self.polyorder)
+        self.altitude = savgol_filter(alt, self.window_size, self.polyorder, mode="nearest")
         
         return np.round(self.altitude, 0)
 
@@ -179,10 +178,13 @@ class Calc_GPS_Data():
         #get height delta for each timestamp
         d_alt = np.diff(self.altitude)
 
+        #protect of division by zero
+        safe_dist_2d = np.where(self.dist_2d == 0, 1e-5, self.dist_2d)
+
         #calculate gradient for each timestamp
         #sin(phi) = gegenkat / hypo
-        frac = d_alt / self.dist
-        phi = np.rad2deg(np.arcsin(frac))   
+        frac = d_alt / safe_dist_2d
+        phi = np.rad2deg(np.arctan(frac))   
 
         #round to .1 degree
         phi_round = np.round(phi, 1)
@@ -207,13 +209,14 @@ class Calc_GPS_Data():
         #get height delta for each timestamp
         d_alt = np.diff(self.altitude)
 
+        #protect of division by zero
+        safe_dist_2d = np.where(self.dist_2d == 0, 1e-5, self.dist_2d)
+
         #calculate gradient for each timestamp
-        #sin(phi) = gegenkat / hypo
-        frac = d_alt / self.dist
-        phi = np.arcsin(frac) 
+        frac = d_alt / safe_dist_2d
 
         #transform angle to percent 
-        percent = np.tan(phi) * 100 
+        percent = frac * 100 
 
         #round to .1 percent 
         percent_round = np.round(percent, 1)
@@ -333,6 +336,23 @@ class Calc_GPS_Data():
         #Mittelwerte zwischen Messerwerten, damit es auch 2283 werte sind 
         rho_mittelwerte = (self.rho[:-1] + self.rho[1:]) / 2
         
-        return rho_mittelwerte
+        return rho_mittelwerte 
 
+    def get_plotting_distance(self) -> np.ndarray: 
+        """
+        takes:
+            given Numpy array
+        does:
+            this method adds an 0 at the begin of the get_distance method 
+        returns:
+            Numpy Array with the same dimension as altitude
+        """
+        raw_dist = self.get_distance()
         
+        #insert a 0 as the first value 
+        dist_with_start = np.insert(raw_dist, 0, 0.0)
+        
+        # np.cumsum calculates running sum 
+        cumulative_dist = np.cumsum(dist_with_start)
+        
+        return cumulative_dist

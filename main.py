@@ -56,11 +56,14 @@ motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch
 print(f"torque: {motor_calc.get_torque()}Nm")
 print(f"motor-current: {motor_calc.get_motor_current()}A")
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(2,1)
 
-ax.plot(
-    gps_evaluator.get_altitude()
+ax[0].plot(
+    gps_evaluator.get_plotting_distance(),
+    gps_evaluator.get_altitude(),
 )
-
-
+ax[1].plot(
+    gps_evaluator.get_plotting_distance()[1:],
+    force_calc.get_power()
+)
 plt.show()
