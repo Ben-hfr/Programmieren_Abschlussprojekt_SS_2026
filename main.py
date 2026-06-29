@@ -13,6 +13,7 @@ from pathlib import Path
 from data.csv_to_array import import_csv_to_array
 from src.gps_auswertung.calc_gps_data import Calc_GPS_Data
 from src.gps_auswertung.calc_force_data import Calc_Force_Data
+from src.gps_auswertung.calc_motor_data import Calc_Motor_Data
 #merge Data path
 project_root = Path(__file__).resolve().parent
 
@@ -39,9 +40,14 @@ print(f"mean speed: {gps_evaluator.get_mean_speed()}km/h")
 
 print(f"lowest point: {gps_evaluator.get_min_max_elevation()[0]}m. Highest point: {gps_evaluator.get_min_max_elevation()[1]}m")
 
-
+#beispiel Kräfte
 force_calc = Calc_Force_Data(gps_evaluator, mass=95.0, cw=0.9, area=0.5)
  
-print(f"req. Force: {force_calc.get_required_force()}")
-print(f"req. power: {force_calc.get_power()}")
+print(f"req. Force: {force_calc.get_required_force()}N")
+print(f"req. power: {force_calc.get_power()}W")
 
+#beispielmotor
+motor_calc = Calc_Motor_Data(force_calc, r_wheel=0.3429, k_m=1.5) #r_wheel = 27 inch. Umrechnung muss noch in der Klasse eingebaut werden
+ 
+print(f"torque: {motor_calc.get_torque()}Nm")
+print(f"motor-current: {motor_calc.get_motor_current()}A")
