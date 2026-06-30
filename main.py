@@ -7,6 +7,7 @@ import unittest
 import matplotlib.pyplot as plt
 from abc import ABC
 from pathlib import Path
+import tkinter as tk
 
 #custom imports
 
