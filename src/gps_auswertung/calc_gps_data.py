@@ -84,7 +84,7 @@ class Calc_GPS_Data():
         self.get_distance()
 
         #calculate speed
-        self.dtime_sec = np.where(self.dtime_sec == 0, 1e-5, self.dtime_sec)
+        #self.dtime_sec = np.where(self.dtime_sec == 0, 1e-5, self.dtime_sec)
         speed_raw = self.dist / self.dtime_sec
 
         #filter 
@@ -111,7 +111,7 @@ class Calc_GPS_Data():
 
         self.acc = savgol_filter(self.speed_ms, self.window_size, self.polyorder,
                                   deriv=1, delta=1.0, mode="nearest")
-
+    
         return self.acc
 
     def get_altitude(self) -> np.ndarray:
@@ -167,8 +167,7 @@ class Calc_GPS_Data():
         self.get_altitude()
 
        
-        alt_raw = self.gps_array[:,2].astype(float)
-        d_alt = np.diff(alt_raw)
+        d_alt = np.diff(self.altitude)
 
         min_dist = 1.0
         safe_dist_2d = np.where(self.dist_2d < min_dist, min_dist, self.dist_2d)
@@ -204,8 +203,7 @@ class Calc_GPS_Data():
         self.get_altitude()
 
         
-        alt_raw = self.gps_array[:,2].astype(float)
-        d_alt = np.diff(alt_raw)
+        d_alt = np.diff(self.altitude)
 
         #gleicher Mindestabstand wie in get_gradient_deg(), siehe Kommentar dort
         min_dist = 1.0
