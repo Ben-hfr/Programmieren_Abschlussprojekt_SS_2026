@@ -56,6 +56,16 @@ motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch
 print(f"torque: {motor_calc.get_torque()}Nm")
 print(f"motor-current: {motor_calc.get_motor_current()}A")
 
+import inspect
+print("calc_gps_data.py wird geladen von:", inspect.getfile(Calc_GPS_Data))
+print("calc_force_data.py wird geladen von:", inspect.getfile(Calc_Force_Data))
+print("CSV wird gesucht in:", import_csv_to_array.__module__)
+
+from data.csv_to_array import csv_dir
+print("CSV-Verzeichnis:", csv_dir)
+import os
+print("Letzte Änderung CSV:", os.path.getmtime(csv_dir / 'final_project_input_data.csv'))
+
 fig, ax = plt.subplots(2,1)
 
 ax[0].plot(
@@ -67,3 +77,4 @@ ax[1].plot(
     force_calc.get_power()
 )
 plt.show()
+

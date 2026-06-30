@@ -29,7 +29,7 @@ class Calc_GPS_Data():
         #calculate time delta 
         dtime = np.diff(time)
         #convert time deltas to seconds
-        self.dtime_sec = dtime.astype('timedelta64[s]').astype(float)
+        self.dtime_sec = dtime.astype('timedelta64[ms]').astype(float) / 1000.0
 
 
     def get_distance(self) -> float:
@@ -81,11 +81,11 @@ class Calc_GPS_Data():
         """
         
         #get distance array with method to use later on 
-        raw_dist = self.get_distance()
+        self.get_distance()
 
         #calculate speed
         self.dtime_sec = np.where(self.dtime_sec == 0, 1e-5, self.dtime_sec)
-        speed_raw = raw_dist / self.dtime_sec
+        speed_raw = self.dist / self.dtime_sec
 
         #filter 
         self.speed_ms = savgol_filter(speed_raw, self.window_size, self.polyorder, mode="nearest")
@@ -109,17 +109,8 @@ class Calc_GPS_Data():
         self.get_speed()
         dspeed = np.diff(self.speed_ms)
 
-        #zugehöriges Zeitintervall von dspeed: Mittelwert der beiden angrenzenden dt's,
-        #da dspeed genau zwischen Intervall i und i+1 liegt
-        dt = (self.dtime_sec[:-1] + self.dtime_sec[1:]) / 2
-        dt = np.where(dt == 0, 1e-5, dt)
-
-        #calculate acceleration
-        acc = dspeed / dt
-
-        #für das allererste Zeitintervall gibt es keinen "Vorgänger" -> mit 0 auffüllen
-        #(Annahme: keine Beschleunigung am ersten Punkt), damit das Array gleich lang
-        self.acc = np.insert(acc, 0, 0.0)
+        self.acc = savgol_filter(self.speed_ms, self.window_size, self.polyorder,
+                                  deriv=1, delta=1.0, mode="nearest")
 
         return self.acc
 
@@ -175,16 +166,22 @@ class Calc_GPS_Data():
         self.get_distance()
         self.get_altitude()
 
-        #get height delta for each timestamp
-        d_alt = np.diff(self.altitude)
+       
+        alt_raw = self.gps_array[:,2].astype(float)
+        d_alt = np.diff(alt_raw)
 
-        #protect of division by zero
-        safe_dist_2d = np.where(self.dist_2d == 0, 1e-5, self.dist_2d)
+        min_dist = 1.0
+        safe_dist_2d = np.where(self.dist_2d < min_dist, min_dist, self.dist_2d)
 
         #calculate gradient for each timestamp
         #sin(phi) = gegenkat / hypo
         frac = d_alt / safe_dist_2d
         phi = np.rad2deg(np.arctan(frac))   
+
+        #Sicherheitsnetz: realistische Straßen-/Wegsteigungen liegen praktisch nie über
+        #±30° (~58%).
+        max_gradient_deg = 30.0
+        phi = np.clip(phi, -max_gradient_deg, max_gradient_deg)
 
         #round to .1 degree
         phi_round = np.round(phi, 1)
@@ -206,17 +203,23 @@ class Calc_GPS_Data():
         self.get_distance()
         self.get_altitude()
 
-        #get height delta for each timestamp
-        d_alt = np.diff(self.altitude)
+        
+        alt_raw = self.gps_array[:,2].astype(float)
+        d_alt = np.diff(alt_raw)
 
-        #protect of division by zero
-        safe_dist_2d = np.where(self.dist_2d == 0, 1e-5, self.dist_2d)
+        #gleicher Mindestabstand wie in get_gradient_deg(), siehe Kommentar dort
+        min_dist = 1.0
+        safe_dist_2d = np.where(self.dist_2d < min_dist, min_dist, self.dist_2d)
 
         #calculate gradient for each timestamp
         frac = d_alt / safe_dist_2d
 
         #transform angle to percent 
         percent = frac * 100 
+
+        #Sicherheitsnetz: ±58% (~30°) als realistisches Maximum, siehe get_gradient_deg()
+        max_gradient_percent = 58.0
+        percent = np.clip(percent, -max_gradient_percent, max_gradient_percent)
 
         #round to .1 percent 
         percent_round = np.round(percent, 1)
