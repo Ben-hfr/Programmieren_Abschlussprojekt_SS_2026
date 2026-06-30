@@ -66,7 +66,7 @@ print("CSV-Verzeichnis:", csv_dir)
 import os
 print("Letzte Änderung CSV:", os.path.getmtime(csv_dir / 'final_project_input_data.csv'))
 
-fig, ax = plt.subplots(2,1)
+fig, ax = plt.subplots(3,1)
 
 ax[0].plot(
     gps_evaluator.get_plotting_distance(),
@@ -75,6 +75,10 @@ ax[0].plot(
 ax[1].plot(
     gps_evaluator.get_plotting_distance()[1:],
     force_calc.get_power()
+)
+ax[2].plot(
+    gps_evaluator.get_plotting_distance()[1:],
+    gps_evaluator.get_speed()
 )
 plt.show()
 

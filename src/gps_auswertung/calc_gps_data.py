@@ -24,12 +24,13 @@ class Calc_GPS_Data():
         self.total_time = 0
         self.rho = 0
 
+        self.dtime_sec = 1
         #get time
-        time = self.gps_array[:,3]
+        #time = self.gps_array[:,3]
         #calculate time delta 
-        dtime = np.diff(time)
+        #dtime = np.diff(time)
         #convert time deltas to seconds
-        self.dtime_sec = dtime.astype('timedelta64[ms]').astype(float) / 1000.0
+        #self.dtime_sec = dtime.astype('timedelta64[ms]').astype(float) / 1000.0
 
 
     def get_distance(self) -> float:
@@ -108,9 +109,11 @@ class Calc_GPS_Data():
         #get speed
         self.get_speed()
         dspeed = np.diff(self.speed_ms)
+        dspeed = np.concatenate(([0], dspeed))
+        acc_raw = dspeed / self.dtime_sec
 
-        self.acc = savgol_filter(self.speed_ms, self.window_size, self.polyorder,
-                                  deriv=1, delta=1.0, mode="nearest")
+        self.acc = savgol_filter(acc_raw, self.window_size, self.polyorder,
+                                 mode="nearest")
     
         return self.acc
 
@@ -327,9 +330,9 @@ class Calc_GPS_Data():
         R = 8.314 #Gaskonstante [J/(mol * K)]
         T = self.gps_array[:,4].astype(float) 
         T_abs = T + 273.15 #Absolte Temperatur (C + 273,15) [K]
-        h = self.gps_array[:,2].astype(float)
+        self.get_altitude() #höhe
 
-        x = -((g * M * h)/(R * T_abs))
+        x = -((g * M * self.altitude)/(R * T_abs))
         p = p_0 * np.exp(x) #Luftdruck in Paskal [kg^2 / m * s]
 
         self.rho = (p * M) / (R * T_abs) #Luftdichte [kg/m^3]

@@ -83,7 +83,7 @@ class Calc_Force_Data():
         phi_rad = np.deg2rad(phi_deg)
  
         self.F_roll = self.c_roll * self.mass * self.g * np.cos(phi_rad)
- 
+
         return self.F_roll
     
     def get_acceleration_force(self) -> np.ndarray:
@@ -116,7 +116,7 @@ class Calc_Force_Data():
         F_acc = self.get_acceleration_force()
         F_drag = self.get_drag_force()
         F_gravity = self.get_gravity_force()
-        F_roll = self.get_rolling_resistance()
+        F_roll = self.get_rolling_resistance() #standart = 0
  
         self.F_required = F_acc + F_drag + F_gravity + F_roll
  
