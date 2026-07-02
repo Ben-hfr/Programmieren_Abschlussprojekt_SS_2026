@@ -19,8 +19,8 @@ class Simulator():
 
     def simulate(self) -> None: 
         self.battery.apply_current(self.C, self.d_time)
-        self.voltage_profile = np.cumsum(self.battery.get_voltage(self.C))
-        self.Soc_profile = np.cumsum(self.battery.soc)
+        self.voltage_profile = self.battery.get_voltage(self.C)
+        self.Soc_profile = self.battery.soc
 
 
     def get_result(self) -> tuple[np.ndarray, np.ndarray]:
@@ -30,20 +30,13 @@ class Simulator():
 
 if __name__ == "__main__":
 
-    Lipo_battery = LiPoBattery(10)
+    from LiPo_battery import LiPoBattery
+
+    Lipo_battery = LiPoBattery()
     print(f"Battery Full = {Lipo_battery.is_full()}")
     print(Lipo_battery)
     
     Lipo_battery.apply_current(100, 300)
     print(f"Battery Full = {Lipo_battery.is_full()}")
     print(Lipo_battery)
-    
-    NMC_Battery = NMCBattery(10)
-    print(f"Battery Full = {NMC_Battery.is_full()}")
-    print(NMC_Battery)
-    
-    NMC_Battery.apply_current(100, 300)
-    print(f"Battery Full = {NMC_Battery.is_full()}")
-    print(NMC_Battery)
-    
     

@@ -10,7 +10,7 @@ from src.simulation.battery_base import Battery
 class LiPoBattery (Battery):
 
     def __init__(self,
-            number_of_cells: int,                
+            number_of_cells: int = 10,                
             internal_resistance_mOhm: float = 8,
             capacity_mAh: float = 5000,                  
             initial_soc: float = 100.0,
