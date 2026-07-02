@@ -1,19 +1,24 @@
-from battery_base import Battery
+#package imports
 import numpy as np
+from pathlib import Path
 from scipy.interpolate import interp1d
+
+#class imports 
+project_root = Path(__file__).resolve().parent
+from src.simulation.battery_base import Battery
 
 class LiPoBattery (Battery):
 
     def __init__(self,
             number_of_cells: int,                
-            internal_resistance_Ohm: float,
+            internal_resistance_mOhm: float = 8,
             capacity_mAh: float = 5000,                  
             initial_soc: float = 100.0,
                 ):
         super().__init__(
             capacity_mAh=capacity_mAh,
             number_of_cells=number_of_cells,
-            internal_resistance_Ohm=internal_resistance_Ohm,
+            internal_resistance_mOhm=internal_resistance_mOhm,
             initial_soc=initial_soc
         )
         voltage_profile = np.array([
@@ -23,10 +28,11 @@ class LiPoBattery (Battery):
                 0.00, 0.04, 0.09, 0.13, 0.17, 0.21, 0.26, 
                 0.30, 0.40, 0.52, 0.64, 0.76, 0.88, 1.00])
         self.function = interp1d(soc_measurement_points, voltage_profile, kind = "cubic")  
+ 
 
 
     def get_voltage(self, current: float = 0.0) -> float:
         
-        return float(self.function(self.soc) - self.R_int * current)
+        return self.function(self.soc) - self.R_int * current
     
 

@@ -11,9 +11,16 @@ from pathlib import Path
 #custom imports
 
 from data.csv_to_array import import_csv_to_array
+
 from src.gps_auswertung.calc_gps_data import Calc_GPS_Data
 from src.gps_auswertung.calc_force_data import Calc_Force_Data
 from src.gps_auswertung.calc_motor_data import Calc_Motor_Data
+
+from src.simulation.battery_base import Battery
+from src.simulation.LiPo_battery import LiPoBattery
+from src.simulation.NMC_battery import NMCBattery
+from src.simulation.simulator import Simulator
+
 #merge Data path
 project_root = Path(__file__).resolve().parent
 
@@ -80,5 +87,22 @@ ax[2].plot(
     gps_evaluator.get_plotting_distance()[1:],
     gps_evaluator.get_speed()
 )
-plt.show()
 
+LiPo_battery = LiPoBattery(10)
+
+battery_simulator = Simulator(LiPo_battery, motor_calc.get_motor_current())
+
+print(f"the voltage profile is {battery_simulator.get_result()[0]} and the SoC profile is {battery_simulator.get_result()[1]}")
+
+fig, ax = plt.subplots(3,1)
+
+ax[0].plot(
+    battery_simulator.get_result()[0],
+)
+
+ax[1].plot(
+    battery_simulator.get_result()[1],
+)
+
+
+plt.show()

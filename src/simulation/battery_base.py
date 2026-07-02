@@ -1,3 +1,4 @@
+#package imports
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -7,36 +8,46 @@ class Battery(ABC):
             self,
             capacity_mAh: float,
             number_of_cells: int,
-            internal_resistance_Ohm: float,
+            internal_resistance_mOhm: float,
             initial_soc: float = 100.0,
             ):
         """
         takes:
             capacity_mAh: The nominal capacity for one Cell in mAh
             number_of_cells: The total number of cells in a row 
-            internal_resistance_Ohm: the resistance of one Cell in Ohm
+            internal_resistance_Ohm: the resistance of one Cell in mOhm
             initial_soc: the ammount of battery charge in percent (Standart = 100) 
-
+        
+        Possible Functions are:
+            - apply_current 
+            - is_empty
+            - is_full 
+            - get_voltage
         """
         
         if capacity_mAh <= 0:
             raise ValueError("capacity must be greater than 0!")
         
-        self.capacity = number_of_cells * capacity_mAh * 3.6  #converts mAh As (Si)
-        self.R_int = internal_resistance_Ohm
-        self.soc = max(0.0, min((initial_soc / 100), 1.0))
-        #self.Vmin = voltage_profile[0]
-        #self.Vmax = voltage_profile[-1]
-
+        self.capacity = capacity_mAh * 3.6  #converts mAh As (Si)
+        self.R_int = internal_resistance_mOhm * 10**(-3) 
+        #self.soc = max(0.0, min((initial_soc / 100), 1.0))
+        self.soc = np.clip((initial_soc / 100), 0.0, 1.0)
         self.empty = False
         self.full = False
     
     def apply_current(self, current: float, duration: float) -> None:
         """
-        Apply a current for a spcific duration in seconds and update the SoC
+        takes:
+            current: current in drawn [Amps]
+            duration: time of each current draw [seconds]
+        does:
+            Applys a current for a spcific duration in seconds and update the SoC
+        retuns:
+            None 
         """
+        
         soc_d = - (current * duration) / self.capacity # soc delta for a specific duration
-        self.soc = max(0.0, min(self.soc + soc_d, 1.0))
+        self.soc = np.clip(self.soc + soc_d, 0.0, 1.0)
 
 
     def is_empty(self) -> bool:
@@ -60,5 +71,13 @@ class Battery(ABC):
         return f"BatteryPack(SoC={self.soc * 100:.1f}%, V={self.get_voltage():.2f} V)"
 
     @abstractmethod
-    def get_voltage(self) -> float:
+    def get_voltage(self, current: float) -> float:
+        """
+        takes: 
+            current: Current drawn under load [A] (standart = 0)
+        does:
+            calculates the output voltage for SoC at that moment
+        returns:
+            outpout voltage 
+        """
         pass
