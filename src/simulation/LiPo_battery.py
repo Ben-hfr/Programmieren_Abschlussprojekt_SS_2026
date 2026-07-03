@@ -31,8 +31,8 @@ class LiPoBattery (Battery):
  
 
 
-    def get_voltage(self, current: float = 0.0) -> float:
+    def get_voltage(self, current: float = 0.0) -> np.ndarray:
         
-        return self.function(self.soc) - self.R_int * current
+        return self.function(self.soc_profile) - self.R_int * current
     
 

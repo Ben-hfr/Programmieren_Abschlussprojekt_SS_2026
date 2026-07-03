@@ -18,9 +18,11 @@ class Simulator():
         self.Soc_profile = np.array([])
 
     def simulate(self) -> None: 
-        self.battery.apply_current(self.C, self.d_time)
+       
+        self.Soc_profile =  self.battery.apply_current(self.C, self.d_time)
+
         self.voltage_profile = self.battery.get_voltage(self.C)
-        self.Soc_profile = self.battery.soc
+        
 
 
     def get_result(self) -> tuple[np.ndarray, np.ndarray]:

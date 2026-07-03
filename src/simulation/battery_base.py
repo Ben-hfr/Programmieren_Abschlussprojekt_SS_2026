@@ -14,7 +14,7 @@ class Battery(ABC):
         """
         takes:
             capacity_mAh: The nominal capacity for one Cell in mAh
-            number_of_cells: The total number of cells in a row 
+            number_of_cells: The total number of cellrows parallel  
             internal_resistance_Ohm: the resistance of one Cell in mOhm
             initial_soc: the ammount of battery charge in percent (Standart = 100) 
         
@@ -28,14 +28,17 @@ class Battery(ABC):
         if capacity_mAh <= 0:
             raise ValueError("capacity must be greater than 0!")
         
-        self.capacity = capacity_mAh * 3.6  #converts mAh As (Si)
+        self.capacity = capacity_mAh * 3.6 * number_of_cells  #converts mAh As (Si)
         self.R_int = internal_resistance_mOhm * 10**(-3) 
         #self.soc = max(0.0, min((initial_soc / 100), 1.0))
-        self.soc = np.clip((initial_soc / 100), 0.0, 1.0)
+        #self.soc = np.clip((initial_soc / 100), 0.0, 1.0)
+        self.initial_soc = (initial_soc / 100)
+        self.soc = 0
+        self.soc_profile = np.array([])
         self.empty = False
         self.full = False
     
-    def apply_current(self, current: float, duration: float) -> None:
+    def apply_current(self, current: np.ndarray, duration: float) -> np.ndarray:
         """
         takes:
             current: current in drawn [Amps]
@@ -43,11 +46,22 @@ class Battery(ABC):
         does:
             Applys a current for a spcific duration in seconds and update the SoC
         retuns:
-            None 
+            cumulative array with soc 
         """
         
         soc_d = - (current * duration) / self.capacity # soc delta for a specific duration
-        self.soc = np.clip(self.soc + soc_d, 0.0, 1.0)
+
+        cumulativ_deltas = np.cumsum(soc_d)
+
+        soc_ges = self.initial_soc + cumulativ_deltas
+
+        soc_ges = np.clip(soc_ges, 0.0, 1.0)
+
+        self.soc = soc_ges[-1]
+
+        self.soc_profile = soc_ges
+
+        return soc_ges 
 
 
     def is_empty(self) -> bool:
@@ -68,7 +82,7 @@ class Battery(ABC):
         return np.isclose(self.soc, 1.0)
     
     def __str__(self):
-        return f"BatteryPack(SoC={self.soc * 100:.1f}%, V={self.get_voltage():.2f} V)"
+        return f"BatteryPack(SoC={self.soc * 100:.1f}%, V={self.get_voltage()[-1]:.2f} V)"
 
     @abstractmethod
     def get_voltage(self, current: float) -> float:

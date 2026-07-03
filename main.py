@@ -88,29 +88,29 @@ ax[2].plot(
     gps_evaluator.get_speed()
 )
 
-LiPo_battery = LiPoBattery(10)
+LiPo_battery = LiPoBattery(number_of_cells=5)
 
 battery_simulator = Simulator(LiPo_battery, motor_calc.get_motor_current())
 
 print(f"the voltage profile is {battery_simulator.get_result()[0]} and the SoC profile is {battery_simulator.get_result()[1]}")
 
-Lipo_battery = LiPoBattery()
-print(f"Battery Full = {Lipo_battery.is_full()}")
-print(Lipo_battery)
-
-Lipo_battery.apply_current(100, 300)
-print(f"Battery Full = {Lipo_battery.is_full()}")
-print(Lipo_battery)
-
+print(f"Battery Full = {LiPo_battery.is_full()}")
+print(LiPo_battery)
 
 fig, ax = plt.subplots(3,1)
 
+
 ax[0].plot(
+    gps_evaluator.get_plotting_distance()[1:],
+    motor_calc.get_motor_current(),
+)
+
+ax[1].plot(
     gps_evaluator.get_plotting_distance()[1:],
     battery_simulator.get_result()[0],
 )
 
-ax[1].plot(
+ax[2].plot(
     gps_evaluator.get_plotting_distance()[1:],
     battery_simulator.get_result()[1],
 )
