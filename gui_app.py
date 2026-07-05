@@ -91,16 +91,22 @@ class EBikeGUI(tk.Tk):
         
         
 #=====================================================
-    # ---- linke Spalte: Drop Zone, Parameter, Ergebnisse ----
     def build_layout(self):
+
+# ---- Statuszeile ----
+        self.status_var = tk.StringVar(value="Bereit. Bitte CSV-Datei laden.")
+        status_bar = ttk.Label(textvariable=self.status_var, anchor="w", relief="sunken")
+        status_bar.pack(side="bottom", fill="x")        
+
+# ---- linke Spalte: Drop Zone, Parameter, Ergebnisse ----
         left = ttk.Frame(padding=10)
         left.pack(side="left",fill="y")
         
         self.build_drop_zone(left)
         
-    # ---- rechte Spalte: Plots in Tabs ----
+# ---- rechte Spalte: Plots in Tabs ----
         right = ttk.Frame(padding=10)
-        right.pack(side="right", fill="both")
+        right.pack(side="right", fill="both", expand=True)
  
         self.notebook = ttk.Notebook(right)
         self.notebook.pack(fill="both", expand=True)
@@ -113,11 +119,6 @@ class EBikeGUI(tk.Tk):
         self.fig_gps, self.canvas_gps = self._make_canvas(self.tab_gps, n_axes=3)
         self.fig_motor, self.canvas_motor = self._make_canvas(self.tab_motor, n_axes=2)
         
-     # Statuszeile
-        self.status_var = tk.StringVar(value="Bereit. Bitte CSV-Datei laden.")
-        status_bar = ttk.Label(textvariable=self.status_var, anchor="w",
-                                relief="sunken")
-        status_bar.pack(side="bottom", fill="x")
       
     #Achsen für Plots  
     def _make_canvas(self, parent, n_axes: int):
