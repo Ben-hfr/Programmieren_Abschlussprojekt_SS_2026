@@ -102,12 +102,13 @@ class EBikeGUI(tk.Tk):
         left = ttk.Frame(padding=10)
         left.pack(side="left",fill="y")
         
-        self.build_drop_zone(left)
+        self._build_drop_zone(left)
         
 # ---- rechte Spalte: Plots in Tabs ----
         right = ttk.Frame(padding=10)
         right.pack(side="right", fill="both", expand=True)
  
+        #Notebooks für verschiedene Tabs
         self.notebook = ttk.Notebook(right)
         self.notebook.pack(fill="both", expand=True)
  
@@ -115,7 +116,7 @@ class EBikeGUI(tk.Tk):
         self.tab_motor = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_gps, text="Höhe / Leistung / Geschwindigkeit")
         self.notebook.add(self.tab_motor, text="Motor (Drehmoment / Strom)")
- 
+        #Achsen für spätere Plots
         self.fig_gps, self.canvas_gps = self._make_canvas(self.tab_gps, n_axes=3)
         self.fig_motor, self.canvas_motor = self._make_canvas(self.tab_motor, n_axes=2)
         
@@ -125,7 +126,7 @@ class EBikeGUI(tk.Tk):
         fig = Figure(figsize=(7, 7), dpi=100)
         for i in range(n_axes):
             fig.add_subplot(n_axes, 1, i + 1)
-            #makes figure into a widget for Tk
+            #Wandelt matplotlib figuren in Tkinter widgets um
         canvas = FigureCanvasTkAgg(fig, master=parent)
         canvas.get_tk_widget().pack(fill="both", expand=True)
         toolbar = NavigationToolbar2Tk(canvas, parent)
@@ -133,9 +134,8 @@ class EBikeGUI(tk.Tk):
         return fig, canvas
     
     #Datei per D&D oder Auswahl hinzufügen
-    def build_drop_zone(self, parent):
+    def _build_drop_zone(self, parent):
         box = ttk.LabelFrame(parent, text="CSV-Datei", padding=10)
-        box.configure(width=250)
         box.pack(fill="x", pady=(0,10))
 
         if DND_AVAILABLE:
@@ -163,22 +163,41 @@ class EBikeGUI(tk.Tk):
             )
             note.pack(fill="x", pady=(5, 0))
  
-        #shows the Name of file if loaded
+        #Zeigt den Name der geladenen Datei
         self.file_label_var = tk.StringVar(value="Keine Datei geladen")
         ttk.Label(box, textvariable=self.file_label_var, foreground="blue").pack(fill="x", pady=(5, 0))
+        
+    #Parameter
+    def _build_parameter_form(self,parent):
+        box = ttk.LabelFrame(parent, text="Parameter", padding=10)
+        box.pack(fill="x", pady=(0,10))
+        
+        self.params = {}
+        #Standart-Variablen für alle möglichen Parameter (Technischer Name - Wert - GUI Name)
+        defaults = [
+            ("window_size", "21", "Filter-Fenstergröße (ungerade)"),
+            ("polyorder", "3", "Filter-Polynomgrad"),
+            ("mass_rider", "70.0", "Fahrergewicht [kg]"),
+            ("mass_bike", "15.0", "Fahrradgewicht [kg]"),
+            ("cw_times_area", "0.5625", "cw * Stirnfläche [m²]"),
+            ("c_roll", "0.0", "Rollwiderstandsbeiwert [-]"),
+            ("d_wheel", "27", "Laufraddurchmesser [Zoll]"),
+            ("k_m", "1.5", "Motorkonstante [Nm/A]"),
+        ]
         
     #=================================================
     #EVENTS
     
+    
     def _browse_file(self):
-        #opens standart File-Browser and saves the path into path_str
+        #Öffnet den Filebrowser vom Betriebssystem
         path_str = filedialog.askopenfilename(
             title="GPS-CSV auswählen",
             filetypes=[("CSV-Dateien", "*.csv")], #only CSV!
         )
-        #checks if user pressed cancel button. Only if Path_str is a Path the file gets loaded
+        #Nur wenn tatsächlich eine Datei ausgewählt wurde, wird load_file ausgeführt
         if path_str:
-            #path_str gets converted into a real Path
+            #path_str wird zu einem Path-Objekt umgewandelt
             self._load_file(Path(path_str))
  
     def _load_file(self, path: Path):
@@ -186,12 +205,12 @@ class EBikeGUI(tk.Tk):
             messagebox.showerror("Falscher Dateityp", "Bitte eine .csv-Datei auswählen.")
             return
  
-        #path gets saved for later functions
+        #path wird gespeichert
         self.csv_path = path
-        #updates name for the UI
+        #Name wird geupdated für GUI
         self.file_label_var.set(path.name)
         #self.calc_button.config(state="normal")
-        #updates the statuslabe (bottom of the GUI)
+        #Statusleiste wird geupdated
         self.status_var.set(f"Datei geladen: {path.name}. Bereit zur Berechnung.")
         
  
