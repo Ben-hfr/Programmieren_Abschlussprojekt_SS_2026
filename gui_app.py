@@ -24,7 +24,10 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
 try:
-    from tkinterdnd2 import DND_FILES, TkinterDnD
+    import importlib
+    tkinterdnd2 = importlib.import_module("tkinterdnd2")
+    DND_FILES = tkinterdnd2.DND_FILES
+    TkinterDnD = tkinterdnd2.TkinterDnD
     DND_AVAILABLE = True
 except ImportError:
     DND_AVAILABLE = False
@@ -93,9 +96,11 @@ class EBikeGUI(tk.Tk):
         left = ttk.Frame(padding=10)
         left.pack(side="left",fill="y")
         
+        self.build_drop_zone(left)
+        
     # ---- rechte Spalte: Plots in Tabs ----
         right = ttk.Frame(padding=10)
-        right.pack(side="right", fill="both", expand=True)
+        right.pack(side="right", fill="both")
  
         self.notebook = ttk.Notebook(right)
         self.notebook.pack(fill="both", expand=True)
@@ -119,11 +124,77 @@ class EBikeGUI(tk.Tk):
         fig = Figure(figsize=(7, 7), dpi=100)
         for i in range(n_axes):
             fig.add_subplot(n_axes, 1, i + 1)
+            #makes figure into a widget for Tk
         canvas = FigureCanvasTkAgg(fig, master=parent)
         canvas.get_tk_widget().pack(fill="both", expand=True)
         toolbar = NavigationToolbar2Tk(canvas, parent)
         toolbar.update()
         return fig, canvas
+    
+    #Datei per D&D oder Auswahl hinzufügen
+    def build_drop_zone(self, parent):
+        box = ttk.LabelFrame(parent, text="CSV-Datei", padding=10)
+        box.configure(width=250)
+        box.pack(fill="x", pady=(0,10))
+
+        if DND_AVAILABLE:
+            hint = "CSV hierhin ziehen"
+        else:
+            hint = "Drag & Drop nicht verfügbar"
+        
+        self.drop_label = tk.Label(box, text=f"{hint} \n (oder Klicken zum Auswählen)", 
+                                   width= 32, height= 4, relief="ridge", bg="#F5F5DC", justify="center" )
+
+        self.drop_label.pack(fill="x")
+        
+        #Funktion des Knopfes binden
+        self.drop_label.bind("<Button-1>", lambda e: self._browse_file())
+ 
+        #erstellt D&D zone für Betriebssystem
+        if DND_AVAILABLE:
+            self.drop_label.drop_target_register(DND_FILES)
+            self.drop_label.dnd_bind("<<Drop>>", self._on_drop)
+        else:
+            note = ttk.Label(
+                box, foreground="gray",
+                text="Tipp: 'pip install tkinterdnd2' für Drag & Drop",
+                wraplength=260
+            )
+            note.pack(fill="x", pady=(5, 0))
+ 
+        #shows the Name of file if loaded
+        self.file_label_var = tk.StringVar(value="Keine Datei geladen")
+        ttk.Label(box, textvariable=self.file_label_var, foreground="blue").pack(fill="x", pady=(5, 0))
+        
+    #=================================================
+    #EVENTS
+    
+    def _browse_file(self):
+        #opens standart File-Browser and saves the path into path_str
+        path_str = filedialog.askopenfilename(
+            title="GPS-CSV auswählen",
+            filetypes=[("CSV-Dateien", "*.csv")], #only CSV!
+        )
+        #checks if user pressed cancel button. Only if Path_str is a Path the file gets loaded
+        if path_str:
+            #path_str gets converted into a real Path
+            self._load_file(Path(path_str))
+ 
+    def _load_file(self, path: Path):
+        if path.suffix.lower() != ".csv":
+            messagebox.showerror("Falscher Dateityp", "Bitte eine .csv-Datei auswählen.")
+            return
+ 
+        #path gets saved for later functions
+        self.csv_path = path
+        #updates name for the UI
+        self.file_label_var.set(path.name)
+        #self.calc_button.config(state="normal")
+        #updates the statuslabe (bottom of the GUI)
+        self.status_var.set(f"Datei geladen: {path.name}. Bereit zur Berechnung.")
+        
+ 
+
 
 if __name__ == "__main__":
 
