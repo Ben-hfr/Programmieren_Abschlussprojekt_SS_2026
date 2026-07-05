@@ -19,9 +19,15 @@ import pandas as pd
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, font
 
-import matplotlib as plt
+from matplotlib.figure import Figure
+#imports for Tkinter to mate plt-figures into Tk-widgets
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
-from tkinterdnd2 import DND_FILES, TkinterDnD
+try:
+    from tkinterdnd2 import DND_FILES, TkinterDnD
+    DND_AVAILABLE = True
+except ImportError:
+    DND_AVAILABLE = False
 
 #--------------------
 project_root = Path(__file__).resolve().parent
@@ -71,8 +77,53 @@ class EBikeGUI(tk.Tk):
         super().__init__()
 
         self.title("E-Bike Simulation")
-        self.geometry("500x500")
-    
+        self.geometry("1200x750")
+        
+        self.csv_path: Path | None = None
+        self.gps_evaluator = None
+        self.force_calc = None
+        self.motor_calc = None
+        
+        self.build_layout()
+        
+        
+#=====================================================
+    # ---- linke Spalte: Drop Zone, Parameter, Ergebnisse ----
+    def build_layout(self):
+        left = ttk.Frame(padding=10)
+        left.pack(side="left",fill="y")
+        
+    # ---- rechte Spalte: Plots in Tabs ----
+        right = ttk.Frame(padding=10)
+        right.pack(side="right", fill="both", expand=True)
+ 
+        self.notebook = ttk.Notebook(right)
+        self.notebook.pack(fill="both", expand=True)
+ 
+        self.tab_gps = ttk.Frame(self.notebook)
+        self.tab_motor = ttk.Frame(self.notebook)
+        self.notebook.add(self.tab_gps, text="Höhe / Leistung / Geschwindigkeit")
+        self.notebook.add(self.tab_motor, text="Motor (Drehmoment / Strom)")
+ 
+        self.fig_gps, self.canvas_gps = self._make_canvas(self.tab_gps, n_axes=3)
+        self.fig_motor, self.canvas_motor = self._make_canvas(self.tab_motor, n_axes=2)
+        
+     # Statuszeile
+        self.status_var = tk.StringVar(value="Bereit. Bitte CSV-Datei laden.")
+        status_bar = ttk.Label(textvariable=self.status_var, anchor="w",
+                                relief="sunken")
+        status_bar.pack(side="bottom", fill="x")
+      
+    #Achsen für Plots  
+    def _make_canvas(self, parent, n_axes: int):
+        fig = Figure(figsize=(7, 7), dpi=100)
+        for i in range(n_axes):
+            fig.add_subplot(n_axes, 1, i + 1)
+        canvas = FigureCanvasTkAgg(fig, master=parent)
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+        toolbar = NavigationToolbar2Tk(canvas, parent)
+        toolbar.update()
+        return fig, canvas
 
 if __name__ == "__main__":
 
