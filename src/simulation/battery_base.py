@@ -14,7 +14,7 @@ class Battery(ABC):
         """
         takes:
             capacity_mAh: The nominal capacity for one Cell in mAh
-            number_of_cells: The total number of cellrows parallel  
+            number_of_cells: The total number of cellrows (one row = 10 cells) in parallel  
             internal_resistance_Ohm: the resistance of one Cell in mOhm
             initial_soc: the ammount of battery charge in percent (Standart = 100) 
         
@@ -29,9 +29,7 @@ class Battery(ABC):
             raise ValueError("capacity must be greater than 0!")
         
         self.capacity = capacity_mAh * 3.6 * number_of_cells  #converts mAh As (Si)
-        self.R_int = internal_resistance_mOhm * 10**(-3) 
-        #self.soc = max(0.0, min((initial_soc / 100), 1.0))
-        #self.soc = np.clip((initial_soc / 100), 0.0, 1.0)
+        self.R_int = (internal_resistance_mOhm * 10**(-3) * 10) / number_of_cells #converts to Ohm and multiplies by ten, because ten in a row. devides by number of cell rows in parallel 
         self.initial_soc = (initial_soc / 100)
         self.soc = 0
         self.soc_profile = np.array([])
@@ -48,17 +46,22 @@ class Battery(ABC):
         retuns:
             cumulative array with soc 
         """
+        # soc delta for a specific duration
+        soc_d = - (current * duration) / self.capacity 
         
-        soc_d = - (current * duration) / self.capacity # soc delta for a specific duration
+        # cumulitve sum for the soc deltas  
+        cumulativ_deltas = np.cumsum(soc_d) 
 
-        cumulativ_deltas = np.cumsum(soc_d)
-
+        #adds the initial soc as the first value
         soc_ges = self.initial_soc + cumulativ_deltas
 
+        #temporary help so that the values dont go above 1 and below 0
         soc_ges = np.clip(soc_ges, 0.0, 1.0)
 
+        #put soc value as the last value of array 
         self.soc = soc_ges[-1]
 
+        #put the total soc values (array) as soc profile 
         self.soc_profile = soc_ges
 
         return soc_ges 
@@ -70,7 +73,10 @@ class Battery(ABC):
             True if battery is empty (SoC = 0)
             False if battery has charge left (SoC != 0)
         """
-        return np.isclose(self.soc, 0.0)
+        if self.soc_profile.size == 0:
+            return np.isclose(self.initial_soc, 0.0)
+        else:
+            return np.isclose(self.soc, 0.0)
         
 
     def is_full(self) -> bool:
@@ -79,10 +85,19 @@ class Battery(ABC):
             True if battery is full (SoC = 100%)
             False if battery SoC is under 100%(SoC != 100%)
         """
-        return np.isclose(self.soc, 1.0)
+        if self.soc_profile.size == 0:
+            return np.isclose(self.initial_soc, 1.0)    
+        else:
+            return np.isclose(self.soc, 1.0)
     
     def __str__(self):
-        return f"BatteryPack(SoC={self.soc * 100:.1f}%, V={self.get_voltage()[-1]:.2f} V)"
+        #if soc profile is empty because just intialized the voltage is calculated with initial soc, otherwise the last value of the voltage array
+        if self.soc_profile.size == 0:
+            return f"BatteryPack(SoC={self.initial_soc * 100:.1f}%, V={self.get_voltage(soc = self.initial_soc):.2f} V)"
+        else:
+            return f"BatteryPack(SoC={self.soc * 100:.1f}%, V={self.get_voltage()[-1]:.2f} V)"
+
+
 
     @abstractmethod
     def get_voltage(self, current: float) -> float:

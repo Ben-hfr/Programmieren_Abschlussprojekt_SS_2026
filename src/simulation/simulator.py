@@ -1,9 +1,15 @@
 #package imports
+import sys
 import numpy as np
 from pathlib import Path
 
+project_root = Path(__file__).resolve().parent.parent.parent
+
+# Den Pfad zum sys.path hinzufügen, falls er noch nicht drin ist
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 #class imports 
-project_root = Path(__file__).resolve().parent
 from src.simulation.LiPo_battery import LiPoBattery
 from src.simulation.NMC_battery import NMCBattery
 
@@ -32,7 +38,7 @@ class Simulator():
 
 if __name__ == "__main__":
 
-    from LiPo_battery import LiPoBattery
+    from src.simulation.LiPo_battery import LiPoBattery
 
     Lipo_battery = LiPoBattery()
     print(f"Battery Full = {Lipo_battery.is_full()}")

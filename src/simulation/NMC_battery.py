@@ -31,6 +31,9 @@ class NMCBattery (Battery):
  
 
 
-    def get_voltage(self, current: float = 0.0) -> np.ndarray:
+    def get_voltage(self, current: float = 0.0, soc: np.ndarray = None) -> np.ndarray:
+        #check if soc is given, if not use self.soc_profile, if, then use value
+        actual_soc = self.soc_profile if soc is None else soc
         
-        return self.function(self.soc_profile) - self.R_int * current
+        #return value of function minus voltage over internal resistance 
+        return self.function(actual_soc) - self.R_int * current
