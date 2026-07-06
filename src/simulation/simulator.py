@@ -4,6 +4,9 @@ import numpy as np
 from pathlib import Path
 import logging
 
+#logging initialisieren 
+logger = logging.getLogger(__name__)
+
 project_root = Path(__file__).resolve().parent.parent.parent
 
 # Den Pfad zum sys.path hinzufügen, falls er noch nicht drin ist
@@ -28,6 +31,9 @@ class Simulator():
         self.empty_at_index = None
         self.dissipated_energy_j = 0.0
 
+        #Info Log 
+        logger.info(f"Simulator initialized for {self.battery.__class__.__name__}")
+
     def simulate(self) -> None:         
         theoretical_soc =  self.battery.apply_current(self.C, self.d_time)
         self.Soc_profile =  np.copy(theoretical_soc)
@@ -40,7 +46,10 @@ class Simulator():
             self.empty_error_triggered = True
             self.empty_at_index = empty_indices[0]
 
-            #logging fehlt 
+            logger.warning(
+                f"Battery went empty during simulation! "
+                f"First empty state at index {self.empty_at_index}."
+            )
 
             self.Soc_profile[theoretical_soc < 0] = 0.0
         
@@ -48,25 +57,29 @@ class Simulator():
 
         if overflow_indices.size > 0:
             
-
+            # soc overflow per time delta
             soc_diff = np.diff(theoretical_soc, prepend=self.battery.initial_soc)
 
+            #only use the current when battery was already full
             overshoot_soc_steps = soc_diff[theoretical_soc > 1.0]
 
+            #voltage when battery is full
             v_full = self.battery.get_voltage(soc = 1)
-        
-            self.dissipated_energy_j = np.sum(overshoot_soc_steps) * self.battery.capacity * 3600 * v_full
-        
+            
+            # Calculate energie (E = C * U) with C = I * t 
+            self.dissipated_energy_j = np.sum(overshoot_soc_steps) * self.battery.capacity * v_full
+
+            logger.info(
+                f"Battery overflow detected. "
+                f"Dissipated energy: {self.dissipated_energy_j:.2f} Joules."
+            )
+
+            # all values over one get cliped to one        
             self.Soc_profile[theoretical_soc > 1.0] = 1.0
         
         self.battery.soc_profile = self.Soc_profile
         self.voltage_profile = self.battery.get_voltage(self.C)
         
-        
-        
-        #self.voltage_profile = self.battery.get_voltage(self.C)
-        
-
 
     def get_result(self) -> tuple[np.ndarray, np.ndarray]:
         """
@@ -102,4 +115,6 @@ if __name__ == "__main__":
     NMC_battery.apply_current(100, 300)
     print(f"Battery Full = {NMC_battery.is_full()}")
     print(NMC_battery)
-    
+    NMC_battery_simulator = Simulator(NMC_battery, -100)
+    NMC_battery_simulator.simulate()
+    print(f"Energy dissipated of the resistor where {NMC_battery_simulator.dissipated_energy_j} Joule")
