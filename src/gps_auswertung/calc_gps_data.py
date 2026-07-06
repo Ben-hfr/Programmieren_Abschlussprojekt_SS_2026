@@ -359,4 +359,5 @@ class Calc_GPS_Data():
         # np.cumsum calculates running sum 
         cumulative_dist = np.cumsum(dist_with_start)
         
-        return cumulative_dist
+        #return distance in kilometers 
+        return cumulative_dist / 1000

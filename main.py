@@ -4,6 +4,7 @@ import math
 import os
 import sys
 import unittest
+import logging
 import matplotlib.pyplot as plt
 from abc import ABC
 from pathlib import Path
@@ -27,8 +28,24 @@ project_root = Path(__file__).resolve().parent
 #vorläufige Tests
 array = import_csv_to_array("final_project_input_data.csv")
 
+#setup logging
 
-#filter 5,4 
+def setup_logging():
+    #zentral logging setuo
+    logging.basicConfig(
+            level=logging.DEBUG, # Hier zentral steuern: DEBUG oder INFO?
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            handlers=[
+                logging.StreamHandler(sys.stdout),
+                logging.FileHandler("simulation_run.log", encoding="utf-8")
+            ]
+        )
+
+#intial setup 
+#setup_logging()
+
+
+#filter 21,3
 gps_evaluator = Calc_GPS_Data(array, 21, 3)
 distance = gps_evaluator.get_total_distance()
 print(distance)
@@ -95,29 +112,24 @@ battery_simulator_lipo = Simulator(LiPo_battery, motor_calc.get_motor_current())
 battery_simulator_nmc = Simulator(NMC_battery, motor_calc.get_motor_current())
 
 print(f"the voltage profile is {battery_simulator_lipo.get_result()[0]} and the SoC profile is {battery_simulator_lipo.get_result()[1]}")
-
+print(f"The battery was empty {battery_simulator_lipo.get_error()[0]} at index: {battery_simulator_lipo.get_error()[1]}")
 print(f"Battery Full = {LiPo_battery.is_full()}")
 print(LiPo_battery)
 
-fig, ax = plt.subplots(4,1)
+fig, ax = plt.subplots(3,1)
 
 
 ax[0].plot(
     gps_evaluator.get_plotting_distance()[1:],
-    motor_calc.get_motor_current(),
+    battery_simulator_lipo.get_result()[0],
 )
 
 ax[1].plot(
     gps_evaluator.get_plotting_distance()[1:],
-    battery_simulator_lipo.get_result()[0],
-)
-
-ax[2].plot(
-    gps_evaluator.get_plotting_distance()[1:],
     battery_simulator_nmc.get_result()[0]
 )
 
-ax[3].plot(
+ax[2].plot(
     gps_evaluator.get_plotting_distance()[1:],
     battery_simulator_lipo.get_result()[1],
 )

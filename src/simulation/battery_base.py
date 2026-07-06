@@ -56,7 +56,7 @@ class Battery(ABC):
         soc_ges = self.initial_soc + cumulativ_deltas
 
         #temporary help so that the values dont go above 1 and below 0
-        soc_ges = np.clip(soc_ges, 0.0, 1.0)
+        #soc_ges = np.clip(soc_ges, 0.0, 1.0)
 
         #put soc value as the last value of array 
         self.soc = soc_ges[-1]
