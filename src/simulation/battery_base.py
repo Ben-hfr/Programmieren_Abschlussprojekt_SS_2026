@@ -7,14 +7,14 @@ class Battery(ABC):
     def __init__(
             self,
             capacity_mAh: float,
-            number_of_cells: int,
+            number_of_rows: int,
             internal_resistance_mOhm: float,
             initial_soc: float = 100.0,
             ):
         """
         takes:
             capacity_mAh: The nominal capacity for one Cell in mAh
-            number_of_cells: The total number of cellrows (one row = 10 cells) in parallel  
+            number_of_rows: The total number of cellrows (one row = 10 cells) in parallel  
             internal_resistance_Ohm: the resistance of one Cell in mOhm
             initial_soc: the ammount of battery charge in percent (Standart = 100) 
         
@@ -28,8 +28,14 @@ class Battery(ABC):
         if capacity_mAh <= 0:
             raise ValueError("capacity must be greater than 0!")
         
-        self.capacity = capacity_mAh * 3.6 * number_of_cells  #converts mAh As (Si)
-        self.R_int = (internal_resistance_mOhm * 10**(-3) * 10) / number_of_cells #converts to Ohm and multiplies by ten, because ten in a row. devides by number of cell rows in parallel 
+        if not (0 <= initial_soc <= 100):
+            raise ValueError("The initial soc has to be between 0 and 100")
+        
+        if number_of_rows <= 0:
+            raise ValueError("The Number of cell rows has to be greater than 0")
+        
+        self.capacity = capacity_mAh * 3.6 * number_of_rows  #converts mAh As (Si)
+        self.R_int = (internal_resistance_mOhm * 10**(-3) * 10) / number_of_rows #converts to Ohm and multiplies by ten, because ten in a row. devides by number of cell rows in parallel 
         self.initial_soc = (initial_soc / 100)
         self.soc = 0
         self.soc_profile = np.array([])

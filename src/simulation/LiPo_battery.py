@@ -10,14 +10,14 @@ from src.simulation.battery_base import Battery
 class LiPoBattery (Battery):
 
     def __init__(self,
-            number_of_cells: int = 10,                
+            number_of_rows: int = 10,                
             internal_resistance_mOhm: float = 8,
             capacity_mAh: float = 5000,                  
             initial_soc: float = 100.0,
                 ):
         super().__init__(
             capacity_mAh=capacity_mAh,
-            number_of_cells=number_of_cells,
+            number_of_rows=number_of_rows,
             internal_resistance_mOhm=internal_resistance_mOhm,
             initial_soc=initial_soc
         )
@@ -28,6 +28,8 @@ class LiPoBattery (Battery):
                 0.00, 0.04, 0.09, 0.13, 0.17, 0.21, 0.26, 
                 0.30, 0.40, 0.52, 0.64, 0.76, 0.88, 1.00])
         self.function = interp1d(soc_measurement_points, voltage_profile, kind = "cubic")  
+
+        self.rows_in_parralel = number_of_rows
  
 
     def get_voltage(self, current: float = 0.0, soc: np.ndarray = None) -> np.ndarray:

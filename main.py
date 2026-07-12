@@ -114,8 +114,8 @@ ax[2].plot(
     gps_evaluator.get_speed()
 )
 
-LiPo_battery = LiPoBattery(number_of_cells=5)
-NMC_battery = NMCBattery(number_of_cells=5)
+LiPo_battery = LiPoBattery(number_of_rows=5)
+NMC_battery = NMCBattery(number_of_rows=5)
 
 battery_simulator_lipo = Simulator(LiPo_battery, motor_calc.get_motor_current())
 battery_simulator_nmc = Simulator(NMC_battery, motor_calc.get_motor_current())
@@ -123,6 +123,7 @@ battery_simulator_nmc = Simulator(NMC_battery, motor_calc.get_motor_current())
 print(f"the voltage profile is {battery_simulator_lipo.get_result()[0]} and the SoC profile is {battery_simulator_lipo.get_result()[1]}")
 print(f"The battery was empty {battery_simulator_lipo.get_error()[0]} at index: {battery_simulator_lipo.get_error()[1]}")
 print(f"Battery Full = {LiPo_battery.is_full()}")
+print(f"SoC at the end is: {battery_simulator_lipo.get_result()[2]}")
 print(LiPo_battery)
 
 fig, ax = plt.subplots(3,1)
