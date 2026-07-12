@@ -103,6 +103,7 @@ class EBikeGUI(tk.Tk):
         left.pack(side="left",fill="y")
         
         self._build_drop_zone(left)
+        self._build_parameter_form(left)
         
 # ---- rechte Spalte: Plots in Tabs ----
         right = ttk.Frame(padding=10)
@@ -185,10 +186,34 @@ class EBikeGUI(tk.Tk):
             ("k_m", "1.5", "Motorkonstante [Nm/A]"),
         ]
         
+        #Tabelle erstellen und mit standartwerten füllen
+        for i, (key, default, desc) in enumerate(defaults):
+            ttk.Label(box, text=desc).grid(row=i, column=0, sticky="w", pady=2)
+            var = tk.StringVar(value=default)
+            entry = ttk.Entry(box, textvariable=var, width=10)
+            entry.grid(row=i, column=1, sticky="e", pady=2)
+            self.params[key] = var
+ 
+        box.columnconfigure(0, weight=1)
+ 
+        #Knopf für starten der Berechnung
+        self.calc_button = ttk.Button(
+            box, text="Berechnen", command=self._run_calculation, state="disabled"
+        )
+        self.calc_button.grid(row=len(defaults), column=0, columnspan=2, pady=(10, 0), sticky="ew")
+ 
+    def _build_results_box(self, parent):
+        box = ttk.LabelFrame(parent, text="Ergebnisse", padding=10)
+        box.pack(fill="both", expand=True)
+ 
+        self.results_text = tk.Text(box, width=38, height=18, state="disabled",
+                                     wrap="word", font=("Consolas", 9))
+        self.results_text.pack(fill="both", expand=True)
+        
     #=================================================
     #EVENTS
     
-    
+    #Filebrowser öffnen
     def _browse_file(self):
         #Öffnet den Filebrowser vom Betriebssystem
         path_str = filedialog.askopenfilename(
@@ -200,6 +225,7 @@ class EBikeGUI(tk.Tk):
             #path_str wird zu einem Path-Objekt umgewandelt
             self._load_file(Path(path_str))
  
+    #laden einer CSV-Datei
     def _load_file(self, path: Path):
         if path.suffix.lower() != ".csv":
             messagebox.showerror("Falscher Dateityp", "Bitte eine .csv-Datei auswählen.")
@@ -213,7 +239,71 @@ class EBikeGUI(tk.Tk):
         #Statusleiste wird geupdated
         self.status_var.set(f"Datei geladen: {path.name}. Bereit zur Berechnung.")
         
+    
+    #liest alle parameter aus dem parameterfeld
+    def _read_params(self):
+        try:
+            return dict(
+                window_size=int(self.params["window_size"].get()),
+                polyorder=int(self.params["polyorder"].get()),
+                mass_rider=float(self.params["mass_rider"].get()),
+                mass_bike=float(self.params["mass_bike"].get()),
+                cw_times_area=float(self.params["cw_times_area"].get()),
+                c_roll=float(self.params["c_roll"].get()),
+                d_wheel=float(self.params["d_wheel"].get()),
+                k_m=float(self.params["k_m"].get()),
+            )
+        except ValueError as e:
+            raise ValueError(f"Ungültiger Parameterwert: {e}")
  
+    #berechnet alle Werte der mithilfe der erstellten Klassen
+    def _run_calculation(self):
+        if self.csv_path is None:
+            messagebox.showwarning("Keine Datei", "Bitte zuerst eine CSV-Datei laden.")
+            return
+        
+        try:
+            p = self._read_params()
+            self.status_var.set("Berechne ...")
+            self.root.update_idletasks() #um "Berechne..." sofort anzuzeigen
+ 
+            gps_array = load_gps_csv(self.csv_path)
+ 
+            #selbst erstellte Klassen instanzieren
+            self.gps_evaluator = Calc_GPS_Data(gps_array, p["window_size"], p["polyorder"]) 
+            self.force_calc = Calc_Force_Data(
+                self.gps_evaluator,
+                mass_rider=p["mass_rider"],
+                mass_bike=p["mass_bike"],
+                cw_times_area=p["cw_times_area"],
+                c_roll=p["c_roll"],
+            )
+            self.motor_calc = Calc_Motor_Data(
+                self.force_calc, d_wheel=p["d_wheel"], k_m=p["k_m"]
+            )
+ 
+            self._update_results()
+            self._update_plots()
+            self.status_var.set("Berechnung abgeschlossen.")
+            
+        except Exception as e:
+            messagebox.showerror("Fehler bei der Berechnung", str(e))
+            self.status_var.set("Fehler bei der Berechnung.")
+    
+    """def _update_results(self):
+        g = self.gps_evaluator
+        f = self.force_calc
+        m = self.motor_calc
+ 
+        distance = g.get_total_distance()
+        h, mi, s = g.get_total_time()
+        ascent, descent = g.get_ascent_and_descent()
+        min_ele, max_ele = g.get_min_max_elevation()
+        mean_speed = g.get_mean_speed()
+        max_power = float(np.max(f.get_power()))
+        mean_power = float(np.mean(f.get_power()))
+        max_torque = float(np.max(m.get_torque()))
+        max_current = float(np.max(m.get_motor_current()))"""
 
 
 if __name__ == "__main__":
