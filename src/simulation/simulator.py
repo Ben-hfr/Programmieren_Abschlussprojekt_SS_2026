@@ -28,7 +28,7 @@ class Simulator():
         self.Soc_profile = np.array([])
 
         self.empty_error_triggered = False
-        self.empty_at_index = None
+        self.empty_at_index = None 
         self.dissipated_energy_j = 0.0
 
         #Info Log 
@@ -47,7 +47,7 @@ class Simulator():
             self.empty_at_index = empty_indices[0]
 
             logger.warning(
-                f"Battery went empty during simulation! "
+                f"{self.battery.__class__.__name__} went empty during simulation! "
                 f"First empty state at index {self.empty_at_index}."
             )
 

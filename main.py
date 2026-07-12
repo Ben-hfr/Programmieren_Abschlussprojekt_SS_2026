@@ -84,7 +84,7 @@ print(f"req. Force: {force_calc.get_required_force()}N")
 print(f"req. power: {force_calc.get_power()}W")
 
 #beispielmotor
-motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch. Umrechnung muss noch in der Klasse eingebaut werden
+motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch. Umrechnung muss noch in der Klasse eingebaut werden = erledigt! 
  
 print(f"torque: {motor_calc.get_torque()}Nm")
 print(f"motor-current: {motor_calc.get_motor_current()}A")
