@@ -267,7 +267,7 @@ class EBikeGUI(tk.Tk):
         try:
             p = self._read_params()
             self.status_var.set("Berechne ...")
-            self.root.update_idletasks() #um "Berechne..." sofort anzuzeigen
+            self.update_idletasks() #um "Berechne..." sofort anzuzeigen
  
             gps_array = import_csv_to_array(self.csv_path)
  
@@ -291,6 +291,94 @@ class EBikeGUI(tk.Tk):
         except Exception as e:
             messagebox.showerror("Fehler bei der Berechnung", str(e))
             self.status_var.set("Fehler bei der Berechnung.")
+    
+    def _update_results(self):
+        g = self.gps_evaluator
+        f = self.force_calc
+        m = self.motor_calc
+ 
+        #Berechnungen
+        distance = g.get_total_distance()
+        h, mi, s = g.get_total_time()
+        ascent, descent = g.get_ascent_and_descent()
+        min_ele, max_ele = g.get_min_max_elevation()
+        mean_speed = g.get_mean_speed()
+        max_power = float(np.max(f.get_power()))
+        mean_power = float(np.mean(f.get_power()))
+        max_torque = float(np.max(m.get_torque()))
+        max_current = float(np.max(m.get_motor_current()))
+
+
+        
+        lines = [
+            f"Gesamtdistanz:     {distance/1000:.2f} km",
+            f"Gesamtzeit:        {h:02d}:{mi:02d}:{s:02d}",
+            f"Mittl. Geschw.:    {mean_speed:.2f} km/h",
+            "",
+            f"Anstieg:           {ascent:.0f} m",
+            f"Abstieg:           {descent:.0f} m",
+            f"Min. Höhe:         {min_ele} m",
+            f"Max. Höhe:         {max_ele} m",
+            "",
+            f"Ø Leistung:        {mean_power:.1f} W",
+            f"Max. Leistung:     {max_power:.1f} W",
+            "",
+            f"Max. Drehmoment:   {max_torque:.2f} Nm",
+            f"Max. Motorstrom:   {max_current:.2f} A",
+        ]
+        
+        self.results_text.config(state="normal")
+        self.results_text.delete("1.0", "end")
+        self.results_text.insert("1.0", "\n".join(lines))
+        self.results_text.config(state="disabled")
+        
+    def _update_plots(self):
+        g = self.gps_evaluator
+        f = self.force_calc
+        m = self.motor_calc
+ 
+        x_full = g.get_plotting_distance()
+        x_delta = x_full[1:]
+ 
+        # --- Tab 1: Höhe / Leistung / Geschwindigkeit ---
+        ax1, ax2, ax3 = self.fig_gps.axes
+        for ax in (ax1, ax2, ax3):
+            ax.clear()
+        ax1.margins(x=0)
+        ax1.plot(x_full, g.get_altitude(), color="tab:green")
+        ax1.set_ylabel("Höhe [m]")
+        ax1.set_title("Höhenprofil")
+
+        ax2.margins(x=0)
+        ax2.plot(x_delta, f.get_power(), color="tab:red")
+        ax2.set_ylabel("Leistung [W]")
+        ax2.set_title("Benötigte Leistung")
+ 
+        ax3.margins(x=0)
+        ax3.plot(x_delta, g.get_speed(), color="tab:blue")
+        ax3.set_ylabel("Geschw. [km/h]")
+        ax3.set_xlabel("Distanz [km]")
+        ax3.set_title("Geschwindigkeit")
+ 
+        self.fig_gps.tight_layout()
+        self.canvas_gps.draw()
+ 
+        # --- Tab 2: Motor ---
+        ax4, ax5 = self.fig_motor.axes
+        for ax in (ax4, ax5):
+            ax.clear()
+ 
+        ax4.plot(x_delta, m.get_torque(), color="tab:purple")
+        ax4.set_ylabel("Drehmoment [Nm]")
+        ax4.set_title("Drehmoment am Antriebsrad")
+ 
+        ax5.plot(x_delta, m.get_motor_current(), color="tab:orange")
+        ax5.set_ylabel("Strom [A]")
+        ax5.set_xlabel("Distanz [m]")
+        ax5.set_title("Motorstrom")
+ 
+        self.fig_motor.tight_layout()
+        self.canvas_motor.draw()
     
     
         
