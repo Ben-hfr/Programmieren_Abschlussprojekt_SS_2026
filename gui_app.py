@@ -478,8 +478,41 @@ class EBikeGUI(tk.Tk):
         except Exception as e:
             messagebox.showerror("Fehler Akku-Simulation", str(e))
             
-    
-        
+    #Battery-plots
+    def _update_battery_plots(self, soc, voltage, err_flag, err_idx):
+            x = self.gps_evaluator.get_plotting_distance()[1:]  # gleiche Länge wie current_profile
+
+            ax1, ax2 = self.fig_battery.axes
+            ax1.clear()
+            ax2.clear()
+
+            # SoC-Plot
+            ax1.margins(x=0)
+            ax1.plot(x, soc * 100, color="tab:green", label="SoC")
+            ax1.set_ylabel("SoC [%]")
+            ax1.set_title(f"State of Charge — {self.battery_type_var.get()}")
+            ax1.axhline(0, color="red", linewidth=0.8, linestyle="--")
+
+            if err_flag and err_idx is not None:
+                ax1.axvline(x[err_idx], color="red", linewidth=1.2,
+                            linestyle="--", label=f"Leer bei {x[err_idx]/1000:.1f} km")
+                ax1.legend(fontsize=8)
+
+            # Spannungs-Plot
+            ax2.margins(x=0)
+            ax2.plot(x, voltage, color="tab:orange")
+            ax2.set_ylabel("Spannung [V]")
+            ax2.set_xlabel("Distanz [km]")
+            ax2.set_title("Klemmenspannung")
+
+            if err_flag and err_idx is not None:
+                ax2.axvline(x[err_idx], color="red", linewidth=1.2, linestyle="--")
+
+            self.fig_battery.tight_layout()
+            self.canvas_battery.draw()
+
+            # Tab hervorheben und direkt drauf wechseln
+            self.notebook.select(self.tab_battery)    
     
     
         
