@@ -347,7 +347,7 @@ class Calc_GPS_Data():
         takes:
             given Numpy array
         does:
-            this method adds an 0 at the begin of the get_distance method 
+            this method adds an 0 at the beginning of the get_distance method 
         returns:
             Numpy Array with the same dimension as altitude
         """

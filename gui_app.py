@@ -104,6 +104,7 @@ class EBikeGUI(tk.Tk):
         
         self._build_drop_zone(left)
         self._build_parameter_form(left)
+        self._build_results_box(left)
         
 # ---- rechte Spalte: Plots in Tabs ----
         right = ttk.Frame(padding=10)
@@ -186,7 +187,7 @@ class EBikeGUI(tk.Tk):
             ("k_m", "1.5", "Motorkonstante [Nm/A]"),
         ]
         
-        #Tabelle erstellen und mit standartwerten füllen
+        #Tabelle erstellen und mit standartwerten füllen (es sind StringVar und können jederzeit verändert werden)
         for i, (key, default, desc) in enumerate(defaults):
             ttk.Label(box, text=desc).grid(row=i, column=0, sticky="w", pady=2)
             var = tk.StringVar(value=default)
@@ -201,7 +202,8 @@ class EBikeGUI(tk.Tk):
             box, text="Berechnen", command=self._run_calculation, state="disabled"
         )
         self.calc_button.grid(row=len(defaults), column=0, columnspan=2, pady=(10, 0), sticky="ew")
- 
+        
+        #selbsterklärend
     def _build_results_box(self, parent):
         box = ttk.LabelFrame(parent, text="Ergebnisse", padding=10)
         box.pack(fill="both", expand=True)
@@ -235,7 +237,7 @@ class EBikeGUI(tk.Tk):
         self.csv_path = path
         #Name wird geupdated für GUI
         self.file_label_var.set(path.name)
-        #self.calc_button.config(state="normal")
+        self.calc_button.config(state="normal") #when a file is loaded you can click the calculate button
         #Statusleiste wird geupdated
         self.status_var.set(f"Datei geladen: {path.name}. Bereit zur Berechnung.")
         
@@ -267,7 +269,7 @@ class EBikeGUI(tk.Tk):
             self.status_var.set("Berechne ...")
             self.root.update_idletasks() #um "Berechne..." sofort anzuzeigen
  
-            gps_array = load_gps_csv(self.csv_path)
+            gps_array = import_csv_to_array(self.csv_path)
  
             #selbst erstellte Klassen instanzieren
             self.gps_evaluator = Calc_GPS_Data(gps_array, p["window_size"], p["polyorder"]) 
@@ -290,22 +292,8 @@ class EBikeGUI(tk.Tk):
             messagebox.showerror("Fehler bei der Berechnung", str(e))
             self.status_var.set("Fehler bei der Berechnung.")
     
-    """def _update_results(self):
-        g = self.gps_evaluator
-        f = self.force_calc
-        m = self.motor_calc
- 
-        distance = g.get_total_distance()
-        h, mi, s = g.get_total_time()
-        ascent, descent = g.get_ascent_and_descent()
-        min_ele, max_ele = g.get_min_max_elevation()
-        mean_speed = g.get_mean_speed()
-        max_power = float(np.max(f.get_power()))
-        mean_power = float(np.mean(f.get_power()))
-        max_torque = float(np.max(m.get_torque()))
-        max_current = float(np.max(m.get_motor_current()))"""
-
-
+    
+        
 if __name__ == "__main__":
 
     app = EBikeGUI()
