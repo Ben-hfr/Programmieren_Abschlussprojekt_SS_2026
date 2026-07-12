@@ -39,6 +39,9 @@ from src.gps_auswertung.calc_gps_data import Calc_GPS_Data
 from src.gps_auswertung.calc_force_data import Calc_Force_Data
 from src.gps_auswertung.calc_motor_data import Calc_Motor_Data
 
+from src.simulation.LiPo_battery import LiPoBattery
+from src.simulation.NMC_battery import NMCBattery
+from src.simulation.simulator import Simulator
 
 def import_csv_to_array(file_path: Path) -> np.array:
     """give csv-file name;
@@ -86,6 +89,8 @@ class EBikeGUI(tk.Tk):
         self.gps_evaluator = None
         self.force_calc = None
         self.motor_calc = None
+        self.battery = None
+        self.simulator = None
         
         self.build_layout()
         
@@ -105,6 +110,7 @@ class EBikeGUI(tk.Tk):
         self._build_drop_zone(left)
         self._build_parameter_form(left)
         self._build_results_box(left)
+        self._build_battery_form(left)
         
 # ---- rechte Spalte: Plots in Tabs ----
         right = ttk.Frame(padding=10)
@@ -116,11 +122,14 @@ class EBikeGUI(tk.Tk):
  
         self.tab_gps = ttk.Frame(self.notebook)
         self.tab_motor = ttk.Frame(self.notebook)
+        self.tab_battery = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_gps, text="Höhe / Leistung / Geschwindigkeit")
         self.notebook.add(self.tab_motor, text="Motor (Drehmoment / Strom)")
+        self.notebook.add(self.tab_battery, text="Akku-Simulation")
         #Achsen für spätere Plots
         self.fig_gps, self.canvas_gps = self._make_canvas(self.tab_gps, n_axes=3)
         self.fig_motor, self.canvas_motor = self._make_canvas(self.tab_motor, n_axes=2)
+        self.fig_battery, self.canvas_battery = self._make_canvas(self.tab_battery, n_axes=2)
         
       
     #Achsen für Plots  
@@ -202,6 +211,41 @@ class EBikeGUI(tk.Tk):
             box, text="Berechnen", command=self._run_calculation, state="disabled"
         )
         self.calc_button.grid(row=len(defaults), column=0, columnspan=2, pady=(10, 0), sticky="ew")
+        
+        #Das gleiche wie parameter aber für Batterien
+    def _build_battery_form(self, parent):
+        box = ttk.LabelFrame(parent, text="Akku-Simulation", padding=10)
+        box.pack(fill="x", pady=(0, 10))
+
+        # Batterietyp
+        ttk.Label(box, text="Batterietyp").grid(row=0, column=0, sticky="w", pady=2)
+        self.battery_type_var = tk.StringVar(value="LiPo")
+        type_combo = ttk.Combobox(box, textvariable=self.battery_type_var,
+                               values=["LiPo", "NMC"], state="readonly", width=8)
+        type_combo.grid(row=0, column=1, sticky="e", pady=2)
+
+        # BatterieParameter
+        self.battery_params = {}
+        bat_defaults = [
+            ("bat_rows",     "10",    "Zellreihen parallel [-]"),
+            ("bat_capacity", "5000",  "Kapazität je Zelle [mAh]"),
+            ("bat_r_int",    "8",     "Innenwiderstand [mΩ]"),
+            ("bat_soc_init", "100",   "Start-SoC [%]"),
+            ]
+        for i, (key, default, desc) in enumerate(bat_defaults, start=1):
+            ttk.Label(box, text=desc).grid(row=i, column=0, sticky="w", pady=2)
+            var = tk.StringVar(value=default)
+            ttk.Entry(box, textvariable=var, width=10).grid(row=i, column=1, sticky="e", pady=2)
+            self.battery_params[key] = var
+
+        box.columnconfigure(0, weight=1)
+
+        self.bat_button = ttk.Button(
+            box, text="Akku simulieren",
+            command=self._run_battery_simulation, state="disabled"
+            )
+        self.bat_button.grid(row=len(bat_defaults)+1, column=0, columnspan=2,
+                            pady=(10, 0), sticky="ew")
         
         #selbsterklärend
     def _build_results_box(self, parent):
@@ -287,6 +331,7 @@ class EBikeGUI(tk.Tk):
             self._update_results()
             self._update_plots()
             self.status_var.set("Berechnung abgeschlossen.")
+            self.bat_button.config(state="normal") #nun kann Akkusimulation gestartet werden
             
         except Exception as e:
             messagebox.showerror("Fehler bei der Berechnung", str(e))
@@ -374,11 +419,51 @@ class EBikeGUI(tk.Tk):
  
         ax5.plot(x_delta, m.get_motor_current(), color="tab:orange")
         ax5.set_ylabel("Strom [A]")
-        ax5.set_xlabel("Distanz [m]")
+        ax5.set_xlabel("Distanz [km]")
         ax5.set_title("Motorstrom")
  
         self.fig_motor.tight_layout()
         self.canvas_motor.draw()
+        
+    #Batteries
+    def _run_battery_simulation(self):
+        if self.motor_calc is None:
+            messagebox.showwarning("Keine Berechnung", "Bitte zuerst GPS-Daten berechnen.")
+            return
+        try:
+            # Parameter lesen
+            rows    = int(self.battery_params["bat_rows"].get())
+            cap     = float(self.battery_params["bat_capacity"].get())
+            r_int   = float(self.battery_params["bat_r_int"].get())
+            soc_0   = float(self.battery_params["bat_soc_init"].get())
+            bat_typ = self.battery_type_var.get()
+
+            # Batterietyp instanziieren
+            kwargs = dict(number_of_rows=rows, capacity_mAh=cap,
+                        internal_resistance_mOhm=r_int, initial_soc=soc_0)
+            if bat_typ == "LiPo":
+                self.battery = LiPoBattery(**kwargs)
+            else:
+                self.battery = NMCBattery(**kwargs)
+
+            # Stromprofil vom Motor holen
+            current_profile = self.motor_calc.get_motor_current()
+
+            self.simulator = Simulator(self.battery, current_profile)
+            voltage, soc, end_soc = self.simulator.get_result()
+            err_flag, err_idx = self.simulator.get_error()
+
+            self._update_battery_plots(soc, voltage, err_flag, err_idx)
+
+            msg = f"Simulation abgeschlossen. End-SoC: {end_soc:.1f}%"
+            if err_flag:
+                msg += f"Akku leer bei Index {err_idx}!"
+            self.status_var.set(msg)
+            
+            
+        except Exception as e:
+            messagebox.showerror("Fehler Akku-Simulation", str(e))
+        
     
     
         
