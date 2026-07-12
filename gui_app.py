@@ -88,8 +88,11 @@ class EBikeGUI(tk.Tk):
 
         if platform.system() == "Windows":
             self.state("zoomed")
-        else:
+        elif platform.system() == "Linux":
             self.attributes("-zoomed", True)
+        elif platform.system() == "Darwin":  # macOS
+            self.attributes("-fullscreen", True)
+        
 
         
         self.csv_path: Path | None = None
