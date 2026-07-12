@@ -426,10 +426,12 @@ class EBikeGUI(tk.Tk):
             ax.clear()
  
         ax4.plot(x_delta, m.get_torque(), color="tab:purple")
+        ax4.margins(x=0)
         ax4.set_ylabel("Drehmoment [Nm]")
         ax4.set_title("Drehmoment am Antriebsrad")
  
         ax5.plot(x_delta, m.get_motor_current(), color="tab:orange")
+        ax5.margins(x=0)
         ax5.set_ylabel("Strom [A]")
         ax5.set_xlabel("Distanz [km]")
         ax5.set_title("Motorstrom")
