@@ -109,8 +109,8 @@ class EBikeGUI(tk.Tk):
         
         self._build_drop_zone(left)
         self._build_parameter_form(left)
-        self._build_results_box(left)
         self._build_battery_form(left)
+        self._build_results_box(left)
         
 # ---- rechte Spalte: Plots in Tabs ----
         right = ttk.Frame(padding=10)
@@ -213,6 +213,7 @@ class EBikeGUI(tk.Tk):
         self.calc_button.grid(row=len(defaults), column=0, columnspan=2, pady=(10, 0), sticky="ew")
         
         #Das gleiche wie parameter aber für Batterien
+    
     def _build_battery_form(self, parent):
         box = ttk.LabelFrame(parent, text="Akku-Simulation", padding=10)
         box.pack(fill="x", pady=(0, 10))
@@ -251,10 +252,16 @@ class EBikeGUI(tk.Tk):
     def _build_results_box(self, parent):
         box = ttk.LabelFrame(parent, text="Ergebnisse", padding=10)
         box.pack(fill="both", expand=True)
+        
+        scrollbar = ttk.Scrollbar(box)
+        scrollbar.pack(side="right", fill="y")
  
         self.results_text = tk.Text(box, width=38, height=18, state="disabled",
-                                     wrap="word", font=("Consolas", 9))
+                                     wrap="word", font=("Consolas", 9),
+                                     yscrollcommand=scrollbar.set) # <- Text informiert Scrollbar über position
         self.results_text.pack(fill="both", expand=True)
+        
+        scrollbar.config(command=self.results_text.yview) # <- Scrollbar steuert den text
         
     #=================================================
     #EVENTS
@@ -302,6 +309,7 @@ class EBikeGUI(tk.Tk):
         except ValueError as e:
             raise ValueError(f"Ungültiger Parameterwert: {e}")
  
+ 
     #berechnet alle Werte der mithilfe der erstellten Klassen
     def _run_calculation(self):
         if self.csv_path is None:
@@ -337,6 +345,8 @@ class EBikeGUI(tk.Tk):
             messagebox.showerror("Fehler bei der Berechnung", str(e))
             self.status_var.set("Fehler bei der Berechnung.")
     
+    
+    #Ergebnisse in der results-box updaten
     def _update_results(self):
         g = self.gps_evaluator
         f = self.force_calc
@@ -376,7 +386,9 @@ class EBikeGUI(tk.Tk):
         self.results_text.delete("1.0", "end")
         self.results_text.insert("1.0", "\n".join(lines))
         self.results_text.config(state="disabled")
-        
+    
+    
+    #plots updaten   
     def _update_plots(self):
         g = self.gps_evaluator
         f = self.force_calc
@@ -424,6 +436,8 @@ class EBikeGUI(tk.Tk):
  
         self.fig_motor.tight_layout()
         self.canvas_motor.draw()
+    
+    
         
     #Batteries
     def _run_battery_simulation(self):
@@ -463,6 +477,8 @@ class EBikeGUI(tk.Tk):
             
         except Exception as e:
             messagebox.showerror("Fehler Akku-Simulation", str(e))
+            
+    
         
     
     
