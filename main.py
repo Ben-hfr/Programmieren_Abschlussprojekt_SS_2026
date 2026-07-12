@@ -4,6 +4,7 @@ import math
 import os
 import sys
 import unittest
+import logging
 import matplotlib.pyplot as plt
 from abc import ABC
 from pathlib import Path
@@ -12,17 +13,49 @@ import tkinter as tk
 #custom imports
 
 from data.csv_to_array import import_csv_to_array
+
 from src.gps_auswertung.calc_gps_data import Calc_GPS_Data
 from src.gps_auswertung.calc_force_data import Calc_Force_Data
 from src.gps_auswertung.calc_motor_data import Calc_Motor_Data
+
+from src.simulation.battery_base import Battery
+from src.simulation.LiPo_battery import LiPoBattery
+from src.simulation.NMC_battery import NMCBattery
+from src.simulation.simulator import Simulator
+
 #merge Data path
 project_root = Path(__file__).resolve().parent
 
 #vorläufige Tests
 array = import_csv_to_array("final_project_input_data.csv")
 
+#setup logging
+log_dir = project_root / "logs"
 
-#filter 5,4 
+def setup_logging():
+    # 2. Ordner erstellen, falls er noch nicht existiert
+    log_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Pfad für die eigentliche Log-Datei definieren
+    log_file_path = log_dir / "simulation_run.log"
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            # 3. Hier nutzen wir nun den dynamischen Pfad statt nur dem Dateinamen
+            logging.FileHandler(log_file_path, encoding="utf-8")
+        ]
+    )
+#logging for Matplotlib 
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+
+#intial setup 
+setup_logging()
+
+
+#filter 21,3
 gps_evaluator = Calc_GPS_Data(array, 21, 3)
 distance = gps_evaluator.get_total_distance()
 print(distance)
@@ -52,7 +85,7 @@ print(f"req. Force: {force_calc.get_required_force()}N")
 print(f"req. power: {force_calc.get_power()}W")
 
 #beispielmotor
-motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch. Umrechnung muss noch in der Klasse eingebaut werden
+motor_calc = Calc_Motor_Data(force_calc, d_wheel=27, k_m=1.5) #r_wheel = 27 inch. Umrechnung muss noch in der Klasse eingebaut werden = erledigt! 
  
 print(f"torque: {motor_calc.get_torque()}Nm")
 print(f"motor-current: {motor_calc.get_motor_current()}A")
@@ -81,5 +114,36 @@ ax[2].plot(
     gps_evaluator.get_plotting_distance()[1:],
     gps_evaluator.get_speed()
 )
-plt.show()
 
+LiPo_battery = LiPoBattery(number_of_rows=5)
+NMC_battery = NMCBattery(number_of_rows=5)
+
+battery_simulator_lipo = Simulator(LiPo_battery, motor_calc.get_motor_current())
+battery_simulator_nmc = Simulator(NMC_battery, motor_calc.get_motor_current())
+
+print(f"the voltage profile is {battery_simulator_lipo.get_result()[0]} and the SoC profile is {battery_simulator_lipo.get_result()[1]}")
+print(f"The battery was empty {battery_simulator_lipo.get_error()[0]} at index: {battery_simulator_lipo.get_error()[1]}")
+print(f"Battery Full = {LiPo_battery.is_full()}")
+print(f"SoC at the end is: {battery_simulator_lipo.get_result()[2]}")
+print(LiPo_battery)
+
+fig, ax = plt.subplots(3,1)
+
+
+ax[0].plot(
+    gps_evaluator.get_plotting_distance()[1:],
+    battery_simulator_lipo.get_result()[0],
+)
+
+ax[1].plot(
+    gps_evaluator.get_plotting_distance()[1:],
+    battery_simulator_nmc.get_result()[0]
+)
+
+ax[2].plot(
+    gps_evaluator.get_plotting_distance()[1:],
+    battery_simulator_lipo.get_result()[1],
+)
+
+
+plt.show()
