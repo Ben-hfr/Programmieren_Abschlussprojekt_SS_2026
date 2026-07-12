@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import tkinter as tk
+import platform #for fullscreen
 from tkinter import ttk, filedialog, messagebox, font
 
 from matplotlib.figure import Figure
@@ -84,6 +85,12 @@ class EBikeGUI(tk.Tk):
 
         self.title("E-Bike Simulation")
         self.geometry("1200x750")
+
+        if platform.system() == "Windows":
+            self.state("zoomed")
+        else:
+            self.attributes("-zoomed", True)
+
         
         self.csv_path: Path | None = None
         self.gps_evaluator = None
@@ -394,15 +401,15 @@ class EBikeGUI(tk.Tk):
         f = self.force_calc
         m = self.motor_calc
  
-        x_full = g.get_plotting_distance()
-        x_delta = x_full[1:]
+        self.x_full = g.get_plotting_distance()
+        x_delta = self.x_full[1:]
  
         # --- Tab 1: Höhe / Leistung / Geschwindigkeit ---
         ax1, ax2, ax3 = self.fig_gps.axes
         for ax in (ax1, ax2, ax3):
             ax.clear()
         ax1.margins(x=0)
-        ax1.plot(x_full, g.get_altitude(), color="tab:green")
+        ax1.plot(self.x_full, g.get_altitude(), color="tab:green")
         ax1.set_ylabel("Höhe [m]")
         ax1.set_title("Höhenprofil")
 
@@ -497,7 +504,7 @@ class EBikeGUI(tk.Tk):
 
             if err_flag and err_idx is not None:
                 ax1.axvline(x[err_idx], color="red", linewidth=1.2,
-                            linestyle="--", label=f"Leer bei {x[err_idx]/1000:.1f} km")
+                            linestyle="--", label=f"Leer bei {self.x_full[err_idx]:.1f} km")
                 ax1.legend(fontsize=8)
 
             # Spannungs-Plot
