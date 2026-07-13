@@ -20,6 +20,10 @@ import tkinter as tk
 import platform #for fullscreen
 from tkinter import ttk, filedialog, messagebox, font
 
+import geopandas as gpd
+from shapely.geometry import Point
+import contextily as ctx
+
 from matplotlib.figure import Figure
 #imports for Tkinter to mate plt-figures into Tk-widgets
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -130,16 +134,46 @@ class EBikeGUI(tk.Tk):
         self.notebook = ttk.Notebook(right)
         self.notebook.pack(fill="both", expand=True)
  
+        self.tab_map = ttk.Frame(self.notebook)
         self.tab_gps = ttk.Frame(self.notebook)
         self.tab_motor = ttk.Frame(self.notebook)
         self.tab_battery = ttk.Frame(self.notebook)
+
+        self.notebook.add(self.tab_map, text="Karten-Ansicht")
         self.notebook.add(self.tab_gps, text="Höhe / Leistung / Geschwindigkeit")
         self.notebook.add(self.tab_motor, text="Motor (Drehmoment / Strom)")
         self.notebook.add(self.tab_battery, text="Akku-Simulation")
+
+        # --- ERWEITERUNG FÜR DEN SLIDER IM KARTEN-TAB ---
+        # Wir erstellen einen Container im Karten-Tab: Oben Karte, unten Slider
+        self.map_plot_frame = ttk.Frame(self.tab_map)
+        self.map_plot_frame.pack(fill="both", expand=True)
+        
+        self.map_controls_frame = ttk.Frame(self.tab_map, padding=5)
+        self.map_controls_frame.pack(fill="x", side="bottom")
+        
+        # Infotext-Label für den aktuellen GPS-Punkt
+        self.map_info_var = tk.StringVar(value="Warte auf Berechnung...")
+        self.map_info_label = ttk.Label(self.map_controls_frame, textvariable=self.map_info_var, font=("Consolas", 10))
+        self.map_info_label.pack(anchor="w")
+        
+        # Der Slider selbst (Standardmäßig deaktiviert)
+        self.map_slider = ttk.Scale(self.map_controls_frame, from_=0, to=100, orient="horizontal", command=self._on_slider_move, state="disabled")
+        self.map_slider.pack(fill="x", expand=True, pady=5)
+
         #Achsen für spätere Plots
+        self.fig_map, self.canvas_map = self._make_canvas(self.map_plot_frame, n_axes=1)
         self.fig_gps, self.canvas_gps = self._make_canvas(self.tab_gps, n_axes=3)
         self.fig_motor, self.canvas_motor = self._make_canvas(self.tab_motor, n_axes=2)
         self.fig_battery, self.canvas_battery = self._make_canvas(self.tab_battery, n_axes=2)
+
+        # Variablen für den interaktiven Plot-Speicher
+        self.gps_raw_data = None
+        self.map_x_coords = None
+        self.map_y_coords = None
+        self.current_point_marker = None
+
+
         
       
     #Achsen für Plots  
@@ -360,6 +394,8 @@ class EBikeGUI(tk.Tk):
  
             self._update_results()
             self._update_plots()
+            self._update_map_plot()
+
             self.status_var.set("Berechnung abgeschlossen.")
             self.bat_button.config(state="normal") #nun kann Akkusimulation gestartet werden
             
@@ -367,6 +403,79 @@ class EBikeGUI(tk.Tk):
             messagebox.showerror("Fehler bei der Berechnung", str(e))
             self.status_var.set("Fehler bei der Berechnung.")
     
+    def _update_map_plot(self):
+        """Initialisiert die Karte, projiziert die GPS-Daten und zeichnet den Track."""
+        if self.gps_raw_data is None:
+            return
+            
+        ax = self.fig_map.axes[0]
+        ax.clear()
+        
+        # 1. Konvertiere Lat/Lon in Web-Mercator (EPSG:3857) für contextily-Kartenhintergrund
+        # gps_raw_data Spalten: 0=lat, 1=lon, 2=ele, 3=time, 4=temp
+        geometry = [Point(xy) for xy in zip(self.gps_raw_data[:, 1], self.gps_raw_data[:, 0])]
+        gdf = gpd.GeoDataFrame(geometry=geometry, crs="EPSG:4326").to_crs(epsg=3857)
+        
+        # Koordinaten extrahieren für schnellen Zugriff im Slider
+        self.map_x_coords = gdf.geometry.x.values
+        self.map_y_coords = gdf.geometry.y.values
+        
+        # 2. Zeichne die gefahrene Route (statisch)
+        ax.plot(self.map_x_coords, self.map_y_coords, color="blue", weight=2, alpha=0.7, label="Route")
+        
+        # 3. OSM Basemap hinzufügen
+        ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
+        ax.set_axis_off() # Achsenbeschriftungen ausblenden für saubere Optik
+        
+        # 4. Den beweglichen Punkt initialisieren (wird noch nicht angezeigt)
+        self.current_point_marker, = ax.plot([], [], 'ro', markersize=10, label="Aktuelle Position")
+        ax.legend(loc="upper left")
+        
+        # 5. Slider konfigurieren und aktivieren
+        num_points = len(self.gps_raw_data)
+        self.map_slider.config(from_=0, to=num_points - 1, state="normal")
+        self.map_slider.set(0) # Auf Startpunkt setzen
+        
+        self.fig_map.tight_layout()
+        self.canvas_map.draw()
+        
+        # Den ersten Punkt triggern
+        self._on_slider_move(0)
+
+    def _on_slider_move(self, val):
+        """Wird aufgerufen, sobald der Slider bewegt wird."""
+        if self.gps_raw_data is None or self.current_point_marker is None:
+            return
+            
+        idx = int(float(val))
+        
+        # Sicherheitsprüfung für den Index
+        if idx >= len(self.gps_raw_data):
+            idx = len(self.gps_raw_data) - 1
+            
+        # 1. Daten aus dem originalen NumPy-Array extrahieren
+        lat = self.gps_raw_data[idx, 0]
+        lon = self.gps_raw_data[idx, 1]
+        ele = self.gps_raw_data[idx, 2]
+        time_val = self.gps_raw_data[idx, 3]
+        temp = self.gps_raw_data[idx, 4]
+        
+        # Optional: Geschwindigkeit oder Leistung für genau diesen Punkt anzeigen
+        # Da get_speed() oft Länge (N-1) hat, prüfen wir den Index kurz ab
+        speed = 0.0
+        if self.gps_evaluator and idx < len(self.gps_evaluator.get_speed()):
+            speed = self.gps_evaluator.get_speed()[idx]
+            
+        # 2. Info-Text unter der Karte aktualisieren
+        time_str = pd.to_datetime(time_val).strftime('%H:%M:%S') if pd.notnull(time_val) else "N/A"
+        info_text = f"Index: {idx:04d} | Zeit: {time_str} | Geschwindigkeit: {speed:.1f} km/h | Höhe: {ele:.1f} m | Temp: {temp:.1f} °C"
+        self.map_info_var.set(info_text)
+        
+        # 3. Marker auf der Karte verschieben (Echtzeit, kein Flackern)
+        self.current_point_marker.set_data([self.map_x_coords[idx]], [self.map_y_coords[idx]])
+        
+        # Nur das Canvas neu zeichnen, wenn es im Hintergrund untätig ist (schont CPU)
+        self.canvas_map.draw_idle()
     
     #Ergebnisse in der results-box updaten
     def _update_results(self):
