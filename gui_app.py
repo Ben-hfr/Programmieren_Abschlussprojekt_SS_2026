@@ -26,6 +26,7 @@ import contextily as ctx
 
 from matplotlib.figure import Figure
 from matplotlib.collections import LineCollection
+from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.cm as cm #colormap
 #imports for Tkinter to mate plt-figures into Tk-widgets
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -561,7 +562,11 @@ class EBikeGUI(_Base):
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
         # Linecollection erstellen (gradient hat gleich viele Werte wie es segmente gibt)
-        lc = LineCollection(segments, cmap="RdYlGn_r", linewidth=2)
+        # Grün → Orange → Rot, kein Gelb
+        colors = ["#1a7a1a", "#ff8c00", "#cc0000"]
+        cmap_custom = LinearSegmentedColormap.from_list("GreenOrangeRed", colors)
+
+        lc = LineCollection(segments, cmap=cmap_custom, linewidth=2)
         lc.set_array(grad)
         lc.set_clim(0, 15)   # 0 % → grün, 15 % → rot
 
