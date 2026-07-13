@@ -25,6 +25,8 @@ from shapely.geometry import Point
 import contextily as ctx
 
 from matplotlib.figure import Figure
+from matplotlib.collections import LineCollection
+import matplotlib.cm as cm #colormap
 #imports for Tkinter to mate plt-figures into Tk-widgets
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
@@ -82,8 +84,9 @@ def import_csv_to_array(file_path: Path) -> np.array:
     
     return gps_array
 
+_Base = TkinterDnD.Tk if DND_AVAILABLE else tk.Tk
 
-class EBikeGUI(tk.Tk):
+class EBikeGUI(_Base):
     def __init__(self):
         super().__init__()
 
@@ -334,6 +337,12 @@ class EBikeGUI(tk.Tk):
         if path_str:
             #path_str wird zu einem Path-Objekt umgewandelt
             self._load_file(Path(path_str))
+
+    def _on_drop(self, event):
+    # tkinterdnd2 liefert Pfade mit {} bei Leerzeichen im Dateinamen
+        raw = event.data
+        path_str = raw.strip("{}")
+        self._load_file(Path(path_str))
  
     #laden einer CSV-Datei
     def _load_file(self, path: Path):
@@ -533,21 +542,46 @@ class EBikeGUI(tk.Tk):
  
         self.x_full = g.get_plotting_distance()
         x_delta = self.x_full[1:]
+
+
+
  
         # --- Tab 1: Höhe / Leistung / Geschwindigkeit ---
+
         ax1, ax2, ax3 = self.fig_gps.axes
         for ax in (ax1, ax2, ax3):
             ax.clear()
+
+        #höhe (farbig)
+        alt = g.get_altitude()
+        grad = np.abs(g.get_gradient_percent())  # Steigung in % nur betrag
+
+        # Segmente bauen: je zwei aufeinanderfolgende Punkte = ein Segment (1 segment = 1 Farbe)
+        points = np.array([self.x_full, alt]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+        # Linecollection erstellen (gradient hat gleich viele Werte wie es segmente gibt)
+        lc = LineCollection(segments, cmap="RdYlGn_r", linewidth=2)
+        lc.set_array(grad)
+        lc.set_clim(0, 15)   # 0 % → grün, 15 % → rot
+
+        cbar = self.fig_gps.colorbar(lc, ax=ax1, orientation="vertical", pad=0.02)
+        cbar.set_label("Steigung [%]")
+
+        ax1.add_collection(lc)
+        ax1.set_ylim(alt.min() - 10, alt.max() + 10)
         ax1.margins(x=0)
-        ax1.plot(self.x_full, g.get_altitude(), color="tab:green")
+        
         ax1.set_ylabel("Höhe [m]")
         ax1.set_title("Höhenprofil")
 
+        #Leistung
         ax2.margins(x=0)
         ax2.plot(x_delta, f.get_power(), color="tab:red")
         ax2.set_ylabel("Leistung [W]")
         ax2.set_title("Benötigte Leistung")
  
+        #Geschwindigkeit
         ax3.margins(x=0)
         ax3.plot(x_delta, g.get_speed(), color="tab:blue")
         ax3.set_ylabel("Geschw. [km/h]")
