@@ -145,21 +145,22 @@ class EBikeGUI(tk.Tk):
         self.notebook.add(self.tab_battery, text="Akku-Simulation")
 
         # --- ERWEITERUNG FÜR DEN SLIDER IM KARTEN-TAB ---
-        # Wir erstellen einen Container im Karten-Tab: Oben Karte, unten Slider
-        self.map_plot_frame = ttk.Frame(self.tab_map)
-        self.map_plot_frame.pack(fill="both", expand=True)
-        
+        # 1. ZUERST das Control-Frame unten platzieren
         self.map_controls_frame = ttk.Frame(self.tab_map, padding=5)
-        self.map_controls_frame.pack(fill="x", side="bottom")
+        self.map_controls_frame.pack(side="bottom", fill="x", expand=False)
         
         # Infotext-Label für den aktuellen GPS-Punkt
         self.map_info_var = tk.StringVar(value="Warte auf Berechnung...")
         self.map_info_label = ttk.Label(self.map_controls_frame, textvariable=self.map_info_var, font=("Consolas", 10))
         self.map_info_label.pack(anchor="w")
         
-        # Der Slider selbst (Standardmäßig deaktiviert)
+        # Der Slider selbst
         self.map_slider = ttk.Scale(self.map_controls_frame, from_=0, to=100, orient="horizontal", command=self._on_slider_move, state="disabled")
         self.map_slider.pack(fill="x", expand=True, pady=5)
+
+        # 2. DANACH den Karten-Plot-Frame packen, der den restlichen oberen Platz einnimmt
+        self.map_plot_frame = ttk.Frame(self.tab_map)
+        self.map_plot_frame.pack(side="top", fill="both", expand=True)
 
         #Achsen für spätere Plots
         self.fig_map, self.canvas_map = self._make_canvas(self.map_plot_frame, n_axes=1)
@@ -378,6 +379,9 @@ class EBikeGUI(tk.Tk):
             self.update_idletasks() #um "Berechne..." sofort anzuzeigen
  
             gps_array = import_csv_to_array(self.csv_path)
+
+            self.gps_raw_data = gps_array 
+            # ---------------------------------
  
             #selbst erstellte Klassen instanzieren
             self.gps_evaluator = Calc_GPS_Data(gps_array, p["window_size"], p["polyorder"]) 
@@ -421,7 +425,7 @@ class EBikeGUI(tk.Tk):
         self.map_y_coords = gdf.geometry.y.values
         
         # 2. Zeichne die gefahrene Route (statisch)
-        ax.plot(self.map_x_coords, self.map_y_coords, color="blue", weight=2, alpha=0.7, label="Route")
+        ax.plot(self.map_x_coords, self.map_y_coords, color="blue", linewidth=2, alpha=0.7, label="Route")
         
         # 3. OSM Basemap hinzufügen
         ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
@@ -461,17 +465,19 @@ class EBikeGUI(tk.Tk):
         temp = self.gps_raw_data[idx, 4]
         
         # Optional: Geschwindigkeit oder Leistung für genau diesen Punkt anzeigen
-        # Da get_speed() oft Länge (N-1) hat, prüfen wir den Index kurz ab
+        distance_km = 0.0
+        if self.gps_evaluator:
+            distance_km = self.gps_evaluator.get_plotting_distance()[idx]
         speed = 0.0
         if self.gps_evaluator and idx < len(self.gps_evaluator.get_speed()):
             speed = self.gps_evaluator.get_speed()[idx]
             
         # 2. Info-Text unter der Karte aktualisieren
         time_str = pd.to_datetime(time_val).strftime('%H:%M:%S') if pd.notnull(time_val) else "N/A"
-        info_text = f"Index: {idx:04d} | Zeit: {time_str} | Geschwindigkeit: {speed:.1f} km/h | Höhe: {ele:.1f} m | Temp: {temp:.1f} °C"
+        info_text = f"Strecke: {distance_km:.2f} km | Zeit: {time_str} | Geschwindigkeit: {speed:.1f} km/h | Höhe: {ele:.1f} m | Temp: {temp:.1f} °C"
         self.map_info_var.set(info_text)
         
-        # 3. Marker auf der Karte verschieben (Echtzeit, kein Flackern)
+        #Marker auf der Karte verschieben (Echtzeit, kein Flackern)
         self.current_point_marker.set_data([self.map_x_coords[idx]], [self.map_y_coords[idx]])
         
         # Nur das Canvas neu zeichnen, wenn es im Hintergrund untätig ist (schont CPU)
