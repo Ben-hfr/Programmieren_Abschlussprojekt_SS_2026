@@ -235,6 +235,9 @@ class EBikeGUI(tk.Tk):
                                values=["LiPo", "NMC"], state="readonly", width=8)
         type_combo.grid(row=0, column=1, sticky="e", pady=2)
 
+        #change internal resistance depending on battery selection
+        type_combo.bind("<<ComboboxSelected>>", self._update_battery_defaults)
+
         # BatterieParameter
         self.battery_params = {}
         bat_defaults = [
@@ -257,6 +260,15 @@ class EBikeGUI(tk.Tk):
             )
         self.bat_button.grid(row=len(bat_defaults)+1, column=0, columnspan=2,
                             pady=(10, 0), sticky="ew")
+        
+    #change internal resistance depending on battery selection
+    def _update_battery_defaults(self, event=None):
+        selected_type = self.battery_type_var.get()
+    
+        if selected_type == "LiPo":
+            self.battery_params["bat_r_int"].set("8")
+        elif selected_type == "NMC":
+            self.battery_params["bat_r_int"].set("7")
         
         #selbsterklärend
     def _build_results_box(self, parent):
