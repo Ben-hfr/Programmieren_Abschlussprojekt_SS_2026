@@ -38,7 +38,7 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 
 ## GIF zur Ausführung 
 
-## Uml Klassendiagramm 
+## Aktivitätsdiagramm der Batterie Simulation 
 ![Aktivitätsdiagramm zur Simulation PNG](docs/Aktivitätsdiagramm_Simulation.png)
 
 ## Ordnerstrukur 
