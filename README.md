@@ -53,7 +53,7 @@ Programmieren_Abschlussprojekt_SS_2026/
 │
 ├──docs/  
 │&emsp;└──requirements.txt  
-│
+│  
 └──src/  
     ├──gps_auswertung/  
     │&emsp;├──calc_force_data.py  
