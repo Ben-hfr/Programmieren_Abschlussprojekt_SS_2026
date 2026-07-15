@@ -30,10 +30,10 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 
 ## Ausführung und Anwendung
 1. main.py Datei abrufen und ausführen (der mainloop des GUI von TK Inter startet)
-2. Oben links auf das gelbe Feld klicken und CSV Datei aus dem Ordner "data" aufrufen 
-3. In der linken Spalte auf berechnen Drücken (Paramter sind Grundeinstellungen diese können bei bedarf verändert werden)
-4. Simualtion ausführen
-5. Oben mittig kann zwischen den verschiedenen Taps gewechselt werden um sich verschiedene Plots anzuschauen 
+2. Oben links auf das gelbe Feld klicken und CSV Datei aus dem Ordner "data" aufrufen (oder per Drag & Drop)
+3. In der linken Spalte auf berechnen Drücken (Parameter sind Grundeinstellungen. Diese können bei bedarf verändert werden)
+4. Simualation ausführen
+5. Oben mittig kann zwischen den verschiedenen Tabs gewechselt werden um sich verschiedene Plots anzuschauen 
 6. Unten links gibt es ein kleines Fenster mit Ergebnissen aus der Berechnung der CSV Datei
 
 ## GIF zur Ausführung 
