@@ -17,7 +17,7 @@ project_root = Path(__file__).resolve().parent
 log_dir = project_root / "logs"
 
 def setup_logging():
-    # 2. Ordner erstellen, falls er noch nicht existiert
+    # Ordner erstellen, falls er noch nicht existiert
     log_dir.mkdir(parents=True, exist_ok=True)
     
     # Pfad für die eigentliche Log-Datei definieren
@@ -28,7 +28,6 @@ def setup_logging():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.StreamHandler(sys.stdout),
-            # 3. Hier nutzen wir nun den dynamischen Pfad statt nur dem Dateinamen
             logging.FileHandler(log_file_path, encoding="utf-8")
         ]
     )
