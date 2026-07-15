@@ -39,6 +39,7 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 ## GIF zur Ausführung 
 
 ## Uml Klassendiagramm 
+![Aktivitätsdiagramm zur Simulation PNG](docs/Aktivitätsdiagramm_Simulation.png)
 
 ## Ordnerstrukur 
 Programmieren_Abschlussprojekt_SS_2026/  
