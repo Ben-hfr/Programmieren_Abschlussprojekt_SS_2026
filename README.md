@@ -12,7 +12,7 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 * **Python** (Dieses Projekt wurde auf Python 3.14 entwickelt und diese Version wird von uns Empfohlen)
 
 ## Installation
-1. **Repo Klonen und aufrufen**
+1. **Repo Klonen und aufrufen**  
     git clone [https://github.com/Ben-hfr/Programmieren_Abschlussprojekt_SS_2026.git]
     cd Programmieren_Abschlussprojekt_SS_2026
 
