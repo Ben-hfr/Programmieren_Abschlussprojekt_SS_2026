@@ -50,20 +50,20 @@ Programmieren_Abschlussprojekt_SS_2026/
 ├──data/  
 │&emsp;├──csv_to_array.py  
 │&emsp;└──final_project_input_data.csv  
-│
+│  
 ├──docs/  
 │&emsp;└──requirements.txt  
 │  
 └──src/  
-    ├──gps_auswertung/  
-    │&emsp;├──calc_force_data.py  
-    │&emsp;├──calc_gps_data.py  
-    │&emsp;└──calc_motor_data.py  
-    └──simulation/  
-    &emsp;├──battery_base.py  
-    &emsp;├──LiPo_battery.py  
-    &emsp;├──NMC_battery.py  
-    &emsp;└──simulator.py  
+&emsp;├──gps_auswertung/  
+&emsp;│&emsp;├──calc_force_data.py  
+&emsp;│&emsp;├──calc_gps_data.py  
+&emsp;│&emsp;└──calc_motor_data.py  
+&emsp;└──simulation/  
+&emsp;&emsp;├──battery_base.py  
+&emsp;&emsp;├──LiPo_battery.py  
+&emsp;&emsp;├──NMC_battery.py  
+&emsp;&emsp;└──simulator.py  
 
 ## Beteiligte Personen 
 - Ben Hofer 
