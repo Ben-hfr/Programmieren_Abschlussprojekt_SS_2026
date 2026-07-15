@@ -17,10 +17,10 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
     cd Programmieren_Abschlussprojekt_SS_2026
 
 2. **Virtuelle Umgebung Erstellen und Aktivieren**
-    - Windows 
+    - Windows  
         python -m venv .venv  
         .venv\Scripts\activate  
-    - MacOS / Unix
+    - MacOS / Unix  
         python3 -m venv .venv  
         source .venv/bin/activate  
 
@@ -48,22 +48,22 @@ Programmieren_Abschlussprojekt_SS_2026/
 ├──gui_app.py  
 ├──main.py  
 ├──data/  
-│   ├──csv_to_array.py  
-│   └──final_project_input_data.csv  
+│     ├──csv_to_array.py  
+│     └──final_project_input_data.csv  
 │
 ├──docs/  
-│   └──requirements.txt  
+│     └──requirements.txt  
 │
 └──src/  
     ├──gps_auswertung/  
-    │   ├──calc_force_data.py  
-    │   ├──calc_gps_data.py  
-    │   └──calc_motor_data.py  
+    │     ├──calc_force_data.py  
+    │     ├──calc_gps_data.py  
+    │     └──calc_motor_data.py  
     └──simulation/  
-        ├──battery_base.py  
-        ├──LiPo_battery.py  
-        ├──NMC_battery.py  
-        └──simulator.py  
+          ├──battery_base.py  
+          ├──LiPo_battery.py  
+          ├──NMC_battery.py  
+          └──simulator.py  
 
 ## Beteiligte Personen 
 - Ben Hofer 
