@@ -41,7 +41,7 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 ## Uml Klassendiagramm 
 
 ## Ordnerstrukur 
-Programmieren_Abschlussprojekt_SS_2026/
+Programmieren_Abschlussprojekt_SS_2026/  
 ├──README.md  
 ├──.gitignore  
 ├──.gitattributes  
@@ -60,10 +60,10 @@ Programmieren_Abschlussprojekt_SS_2026/
     │     ├──calc_gps_data.py  
     │     └──calc_motor_data.py  
     └──simulation/  
-          ├──battery_base.py  
-          ├──LiPo_battery.py  
-          ├──NMC_battery.py  
-          └──simulator.py  
+    &emsp;├──battery_base.py  
+    &emsp;├──LiPo_battery.py  
+    &emsp;├──NMC_battery.py  
+    &emsp;└──simulator.py  
 
 ## Beteiligte Personen 
 - Ben Hofer 
