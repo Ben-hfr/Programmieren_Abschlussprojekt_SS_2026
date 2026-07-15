@@ -13,20 +13,20 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 
 ## Installation
 1. **Repo Klonen und aufrufen**  
-    git clone [https://github.com/Ben-hfr/Programmieren_Abschlussprojekt_SS_2026.git]
+    git clone [https://github.com/Ben-hfr/Programmieren_Abschlussprojekt_SS_2026.git]  
     cd Programmieren_Abschlussprojekt_SS_2026
 
 2. **Virtuelle Umgebung Erstellen und Aktivieren**
     - Windows 
-        python -m venv .venv
-        .venv\Scripts\activate
+        python -m venv .venv  
+        .venv\Scripts\activate  
     - MacOS / Unix
-        python3 -m venv .venv
-        source .venv/bin/activate
+        python3 -m venv .venv  
+        source .venv/bin/activate  
 
-3. **Abhänigkeiten und Packages Installieren** 
-    pip install --upgrade pip
-    pip install -r docs/requirements.txt
+3. **Abhänigkeiten und Packages Installieren**   
+    pip install --upgrade pip  
+    pip install -r docs/requirements.txt  
 
 ## Ausführung und Anwendung
 1. main.py Datei abrufen und ausführen (der mainloop des GUI von TK Inter startet)
@@ -42,28 +42,28 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 
 ## Ordnerstrukur 
 Programmieren_Abschlussprojekt_SS_2026/
-├──README.md
-├──.gitignore
-├──.gitattributes
-├──gui_app.py
-├──main.py
-├──data/
-│   ├──csv_to_array.py
-│   └──final_project_input_data.csv
+├──README.md  
+├──.gitignore  
+├──.gitattributes  
+├──gui_app.py  
+├──main.py  
+├──data/  
+│   ├──csv_to_array.py  
+│   └──final_project_input_data.csv  
 │
-├──docs/
-│   └──requirements.txt
+├──docs/  
+│   └──requirements.txt  
 │
-└──src/
-    ├──gps_auswertung/
-    │   ├──calc_force_data.py
-    │   ├──calc_gps_data.py
-    │   └──calc_motor_data.py
-    └──simulation/
-        ├──battery_base.py
-        ├──LiPo_battery.py
-        ├──NMC_battery.py
-        └──simulator.py
+└──src/  
+    ├──gps_auswertung/  
+    │   ├──calc_force_data.py  
+    │   ├──calc_gps_data.py  
+    │   └──calc_motor_data.py  
+    └──simulation/  
+        ├──battery_base.py  
+        ├──LiPo_battery.py  
+        ├──NMC_battery.py  
+        └──simulator.py  
 
 ## Beteiligte Personen 
 - Ben Hofer 
