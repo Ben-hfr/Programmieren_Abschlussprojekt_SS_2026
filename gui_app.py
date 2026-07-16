@@ -109,6 +109,7 @@ class EBikeGUI(_Base):
         self.motor_calc = None
         self.battery = None
         self.simulator = None
+        self.colorbar_gps = None
         
         self.build_layout()
         
@@ -544,9 +545,12 @@ class EBikeGUI(_Base):
         self.x_full = g.get_plotting_distance()
         x_delta = self.x_full[1:]
 
-
-
+        #Alte Colorbar entfernen falls vorhanden (so wird bei erneuten berechnen nicht eine neue achse hinzugefügt. Das Programm ist abgestürzt!)
+        if self.colorbar_gps is not None:
+            self.colorbar_gps.remove()
  
+
+
         # --- Tab 1: Höhe / Leistung / Geschwindigkeit ---
 
         ax1, ax2, ax3 = self.fig_gps.axes
@@ -570,8 +574,9 @@ class EBikeGUI(_Base):
         lc.set_array(grad)
         lc.set_clim(0, 15)   # 0 % → grün, 15 % → rot
 
-        cbar = self.fig_gps.colorbar(lc, ax=ax1, orientation="vertical", pad=0.02)
-        cbar.set_label("Steigung [%]")
+
+        self.colorbar_gps = self.fig_gps.colorbar(lc, ax=ax1, orientation="vertical", pad=0.02)
+        self.colorbar_gps.set_label("Steigung [%]")
 
         ax1.add_collection(lc)
         ax1.set_ylim(alt.min() - 10, alt.max() + 10)
