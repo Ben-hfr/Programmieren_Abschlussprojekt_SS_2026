@@ -117,6 +117,8 @@ class EBikeGUI(_Base):
 #=====================================================
     def build_layout(self):
 
+        """Function that starts automatically. Builds all the UI Elements that are later seen in the Tk-Widget"""
+
 # ---- Statuszeile ----
         self.status_var = tk.StringVar(value="Bereit. Bitte CSV-Datei laden.")
         status_bar = ttk.Label(textvariable=self.status_var, anchor="w", relief="sunken")
@@ -184,6 +186,9 @@ class EBikeGUI(_Base):
       
     #Achsen für Plots  
     def _make_canvas(self, parent, n_axes: int):
+        
+        """Function that creates the axis for plots"""
+
         fig = Figure(figsize=(7, 7), dpi=100)
         for i in range(n_axes):
             fig.add_subplot(n_axes, 1, i + 1)
@@ -196,6 +201,9 @@ class EBikeGUI(_Base):
     
     #Datei per D&D oder Auswahl hinzufügen
     def _build_drop_zone(self, parent):
+        
+        """Function that creates the D&D zone to choose your csv-file"""
+
         box = ttk.LabelFrame(parent, text="CSV-Datei", padding=10)
         box.pack(fill="x", pady=(0,10))
 
@@ -230,6 +238,9 @@ class EBikeGUI(_Base):
         
     #Parameter
     def _build_parameter_form(self,parent):
+        
+        """Function that creates a Box with all the parameters needed for the calculation of gps-data"""
+
         box = ttk.LabelFrame(parent, text="Parameter", padding=10)
         box.pack(fill="x", pady=(0,10))
         
@@ -265,6 +276,9 @@ class EBikeGUI(_Base):
         #Das gleiche wie parameter aber für Batterien
     
     def _build_battery_form(self, parent):
+        
+        """Function that creates a box with all the parameters needed for the simulation of Akkus"""
+
         box = ttk.LabelFrame(parent, text="Akku-Simulation", padding=10)
         box.pack(fill="x", pady=(0, 10))
 
@@ -303,6 +317,9 @@ class EBikeGUI(_Base):
         
     #change internal resistance depending on battery selection
     def _update_battery_defaults(self, event=None):
+        
+        """Function that changes standart parameters depending from the chosen battery"""
+
         selected_type = self.battery_type_var.get()
     
         if selected_type == "LiPo":
@@ -312,6 +329,9 @@ class EBikeGUI(_Base):
         
         #selbsterklärend
     def _build_results_box(self, parent):
+        
+        """Function that builds a box for results"""
+
         box = ttk.LabelFrame(parent, text="Ergebnisse", padding=10)
         box.pack(fill="both", expand=True)
         
@@ -330,6 +350,9 @@ class EBikeGUI(_Base):
     
     #Filebrowser öffnen
     def _browse_file(self):
+        
+        """Function that opens the filebrowser to choose .csv file"""
+
         #Öffnet den Filebrowser vom Betriebssystem
         path_str = filedialog.askopenfilename(
             title="GPS-CSV auswählen",
@@ -341,6 +364,9 @@ class EBikeGUI(_Base):
             self._load_file(Path(path_str))
 
     def _on_drop(self, event):
+        
+        """Function that starts load-file after a D&D event"""
+
     # tkinterdnd2 liefert Pfade mit {} bei Leerzeichen im Dateinamen
         raw = event.data
         path_str = raw.strip("{}")
@@ -348,6 +374,9 @@ class EBikeGUI(_Base):
  
     #laden einer CSV-Datei
     def _load_file(self, path: Path):
+        
+        """Loads a chosen file from the Filebrowser"""
+
         if path.suffix.lower() != ".csv":
             messagebox.showerror("Falscher Dateityp", "Bitte eine .csv-Datei auswählen.")
             return
@@ -363,6 +392,9 @@ class EBikeGUI(_Base):
     
     #liest alle parameter aus dem parameterfeld
     def _read_params(self):
+        
+        """Reads all parameters and saves them in variables """
+
         try:
             return dict(
                 window_size=int(self.params["window_size"].get()),
@@ -380,6 +412,9 @@ class EBikeGUI(_Base):
  
     #berechnet alle Werte der mithilfe der erstellten Klassen
     def _run_calculation(self):
+        
+        """calculates all necessary values using parameters"""
+
         if self.csv_path is None:
             messagebox.showwarning("Keine Datei", "Bitte zuerst eine CSV-Datei laden.")
             return
@@ -419,7 +454,9 @@ class EBikeGUI(_Base):
             self.status_var.set("Fehler bei der Berechnung.")
     
     def _update_map_plot(self):
+        
         """Initialisiert die Karte, projiziert die GPS-Daten und zeichnet den Track."""
+
         if self.gps_raw_data is None:
             return
             
@@ -458,7 +495,9 @@ class EBikeGUI(_Base):
         self._on_slider_move(0)
 
     def _on_slider_move(self, val):
+        
         """Wird aufgerufen, sobald der Slider bewegt wird."""
+
         if self.gps_raw_data is None or self.current_point_marker is None:
             return
             
@@ -496,6 +535,9 @@ class EBikeGUI(_Base):
     
     #Ergebnisse in der results-box updaten
     def _update_results(self):
+        
+        """calculates and shows results on the GUI"""
+
         g = self.gps_evaluator
         f = self.force_calc
         m = self.motor_calc
@@ -538,6 +580,9 @@ class EBikeGUI(_Base):
     
     #plots updaten   
     def _update_plots(self):
+        
+        """Creates all plots (except the map)"""
+
         g = self.gps_evaluator
         f = self.force_calc
         m = self.motor_calc
@@ -624,6 +669,9 @@ class EBikeGUI(_Base):
         
     #Batteries
     def _run_battery_simulation(self):
+        
+        """runs the batterysimulator with chosen parameters"""
+
         if self.motor_calc is None:
             messagebox.showwarning("Keine Berechnung", "Bitte zuerst GPS-Daten berechnen.")
             return
@@ -663,6 +711,9 @@ class EBikeGUI(_Base):
             
     #Battery-plots
     def _update_battery_plots(self, soc, voltage, err_flag, err_idx):
+            
+            """plots the values of the battery simulation"""
+
             x = self.gps_evaluator.get_plotting_distance()[1:]  # gleiche Länge wie current_profile
 
             ax1, ax2 = self.fig_battery.axes

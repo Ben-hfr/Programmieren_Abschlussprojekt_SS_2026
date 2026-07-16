@@ -4,6 +4,8 @@ from pathlib import Path
 
 csv_dir = Path(__file__).resolve().parent
 
+# ---- THIS CODE IS NOT USED IN THE FINAL GUI APP ---- 
+
 def import_csv_to_array(dateiname: str) -> np.array:
     """give csv-file name;
         imports gps-data as a pandas array;
