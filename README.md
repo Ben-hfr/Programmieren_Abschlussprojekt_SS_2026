@@ -20,12 +20,15 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
     - Windows  
         python -m venv .venv  
         .venv\Scripts\activate  
+        &emsp;- Falls dies nicht funktioniert (Berechtigung fehlt)  
+        &emsp;(In der Powershell) Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass  
+
     - MacOS / Unix  
         python3 -m venv .venv  
         source .venv/bin/activate  
 
 3. **Abhänigkeiten und Packages Installieren**   
-    pip install --upgrade pip  
+    python.exe -m pip install --upgrade pip  
     pip install -r docs/requirements.txt  
 
 ## Ausführung und Anwendung
@@ -36,7 +39,6 @@ Abschlussprojekt von Fabian Kehl und Ben Hofer
 5. Oben mittig kann zwischen den verschiedenen Tabs gewechselt werden um sich verschiedene Plots anzuschauen 
 6. Unten links gibt es ein kleines Fenster mit Ergebnissen aus der Berechnung der CSV Datei
 
-## GIF zur Ausführung 
 
 ## Aktivitätsdiagramm der Batterie Simulation 
 ![Aktivitätsdiagramm zur Simulation PNG](docs/Aktivitätsdiagramm_Simulation.png)
